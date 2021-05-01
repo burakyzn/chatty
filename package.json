@@ -1,0 +1,24 @@
+{
+  "name": "realtime-chat-app",
+  "version": "1.0.0",
+  "description": "Realtime chat application for network programming lecture.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/burakyzn/realtime-chat-app.git"
+  },
+  "author": "Burak Yazan <brkyznn@gmail.com>, Berkay Sahin <iletisim@berkaysahin.info>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/burakyzn/realtime-chat-app/issues"
+  },
+  "homepage": "https://github.com/burakyzn/realtime-chat-app#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.0.1"
+  }
+}
