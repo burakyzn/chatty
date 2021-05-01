@@ -10,14 +10,33 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-io.on('connection', (socket) => {
-  console.log('New user connected');
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
-  });
+var users = [];
+var nicknames = [];
 
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', msg);
+io.on('connection', (socket) => {
+  // sadece connection olan kullaniciya ozel yayilim
+  io.to(socket.id).emit('chat message', {"user": "system", "text" : 'Chat sistemine hoşgeldin.'});
+
+  socket.on('newuser', function (name) {
+    console.log(nicknames.indexOf(name));
+    if(nicknames.indexOf(name) == -1){
+      users[socket.id] = name;
+      nicknames.push(name);
+      // kullaniciya belirledigi kullanici adini iletiyoruz 
+      io.to(socket.id).emit('chat message',{"user": "system", "text" : 'Kullanıcı adını ' + name + ' olarak belirledin.'})
+    } else {
+      io.to(socket.id).emit('nicknameerror',{"user": "system", "text" : 'Bu kullanıcı adı daha once secilmis!'})
+    }
+
+    // baglanti koptugunda kullaniciyi sil
+    socket.once('disconnect', function () {
+      delete nicknames[nicknames.indexOf(users[socket.id])];
+      delete users[socket.id];
+    });
+
+    socket.on('chat message', (msg) => {
+      io.emit('chat message', {"user" : users[socket.id], "text": msg});
+    });
   });
 });
 

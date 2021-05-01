@@ -23,11 +23,14 @@
   </body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
+  var kullaniciAdi = prompt("Lutfen kullanici adi girin", "sakaryali54");
   var socket = io();
 
   var messages = document.getElementById('messages');
   var form = document.getElementById('form');
   var input = document.getElementById('input');
+
+  socket.emit('newuser', kullaniciAdi);
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -37,9 +40,14 @@
     }
   });
 
+  socket.on('nicknameerror', function(msg){
+    alert(msg.text);
+    window.location.reload();
+  })
+
   socket.on('chat message', function(msg) {
     var item = document.createElement('li');
-    item.textContent = msg;
+    item.textContent = msg.user != "system" ? msg.user + ' : ' + msg.text : msg.text;
     messages.appendChild(item);
     window.scrollTo(0, document.body.scrollHeight);
   });
