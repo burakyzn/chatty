@@ -82,6 +82,13 @@
       display: inline-block;
     }
 
+    .circle {
+      height: 25px;
+      width: 25px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
     .margin-5 {
       margin-left: 5px;
     }
@@ -155,9 +162,22 @@
   })
 
   socket.on('chat message', function (msg) {
-    var item = document.createElement('li');
-    item.textContent = msg.user != "system" ? msg.user + ' : ' + msg.text : msg.text;
-    messages.appendChild(item);
+    var item = $('<li></li>')
+    
+    var userText = $('<span></span>').text(msg.text);
+
+    if(msg.user != "system"){
+      var img = $('<img></img>').attr('src', msg.avatar).addClass('circle');
+      msg.user = msg.user + ' : ';
+      var userName = $('<span></span>').text(msg.user).addClass('margin-5').css('color', msg.color);
+      $(item).append(img);
+      $(item).append(userName);
+      $(item).append(userText);
+    }else{
+      $(item).append(userText);
+    }
+    
+    messages.append(item[0]);
     window.scrollTo(0, document.body.scrollHeight);
   });
 </script>

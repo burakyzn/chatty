@@ -12,6 +12,16 @@ app.get('/', (req, res) => {
 
 var users = [];
 var nicknames = [];
+var colors = [];
+var avatars = [];
+
+var images = [];
+images[0] = "https://www.w3schools.com/howto/img_avatar.png";
+images[1] = "https://www.w3schools.com/howto/img_avatar2.png";
+images[2] = "https://www.w3schools.com/w3images/avatar2.png";
+images[3] = "https://www.w3schools.com/w3images/avatar6.png";
+images[4] = "https://www.w3schools.com/w3images/avatar5.png";
+
 
 io.on('connection', (socket) => {
   io.to(socket.id).emit('chat message', {"user": "system", "text" : 'Chat sistemine hoşgeldin.'});
@@ -19,6 +29,8 @@ io.on('connection', (socket) => {
   socket.on('newuser', function (name) {
     if(nicknames.indexOf(name) == -1){
       users[socket.id] = name;
+      colors[socket.id] = getRandomColor(); // require('path').basename
+      avatars[socket.id] = images[Math.floor(Math.random() * 5)];
       nicknames.push(name);
       io.to(socket.id).emit('chat message',{"user": "system", "text" : 'Kullanıcı adını ' + name + ' olarak belirledin.'})
       io.emit('onlineusers', {...users});
@@ -30,13 +42,24 @@ io.on('connection', (socket) => {
       io.emit('chat message', {"user": "system", "text" : users[socket.id]+ " ayrıldı."});
       delete nicknames[nicknames.indexOf(users[socket.id])];
       delete users[socket.id];
+      delete colors[socket.id];
+      delete avatars[socket.id];
       io.emit('onlineusers', {...users});
     });
 
     socket.on('chat message', (msg) => {
-      io.emit('chat message', {"user" : users[socket.id], "text": msg});
+      io.emit('chat message', {"user" : users[socket.id], "text": msg, "color" : colors[socket.id], "avatar" : avatars[socket.id]});
     });
   });
 });
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 
 server.listen(PORT, () => console.log(`Listening on ${ PORT }`))
