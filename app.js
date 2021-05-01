@@ -6,8 +6,6 @@ const { Server } = require("socket.io");
 const io = new Server(server);
 const PORT = process.env.PORT || 5000;
 
-app.use('/src', express.static('public'))
-
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
@@ -29,10 +27,10 @@ io.on('connection', (socket) => {
     }
 
     socket.once('disconnect', function () {
-      io.emit('onlineusers', {...users});
       io.emit('chat message', {"user": "system", "text" : users[socket.id]+ " ayrıldı."});
       delete nicknames[nicknames.indexOf(users[socket.id])];
       delete users[socket.id];
+      io.emit('onlineusers', {...users});
     });
 
     socket.on('chat message', (msg) => {

@@ -141,8 +141,8 @@
   })
 
   socket.on('onlineusers', function (users) {
+    $('#onlineUsers').empty();
     for (const [key, value] of Object.entries(users)) {
-      $('#onlineUsers').empty();
       var item = $('<li></li>').addClass('user-li');
       item.id = key;
       var greendot = $('<span></span>').addClass('green-dot');
