@@ -22,12 +22,30 @@ app.get('/api', (req,res) =>{
   res.json(testres);
 })
 
+var users = [];
+
 io.on('connection', (socket) => {
   console.log('Yeni kullanici giris yapti. Socket id : ' + socket.id);
+  io.to(socket.id).emit('chat message', 'Chat sistemine hoşgeldin.');
+  socket.on('newuser', nickname => {
+    users.push({
+      "socketID" : socket.id,
+      "nickname" : nickname
+    })
 
-  socket.once('disconnect', ()=>{
-    console.log('Kullanici ayrildi. Socket id : ' + socket.id);
-  })
+    io.emit('onlineusers', {"userList" : [...users]});
+    io.to(socket.id).emit('chat message','Kullanici adini ' + nickname + ' olarak belirledin.')
+
+    socket.once('disconnect', ()=>{
+      users = users.filter(user => user.socketID != socket.id);
+      console.log('Kullanici ayrildi. Socket id : ' + socket.id);
+      io.emit('onlineusers', {"userList" : [...users]});
+    })
+
+    socket.on('chat message', (msg) => {
+      io.emit('chat message', msg);
+    });
+  });
 });
 
 server.listen(PORT, console.log(`Server is starting at ${PORT}`));
