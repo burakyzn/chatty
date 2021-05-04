@@ -1,17 +1,14 @@
-import logo from './logo.svg';
 import './App.css';
+import MainScreen from './App/MainScreen.js'
 import {io} from 'socket.io-client';
 
-const socket = io(); // htttp://localhost:5000
+const socket = io(); // http://localhost:5000
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Socket baglanti kontrol!</h1>
-      </header>
-    </div>
+    <MainScreen></MainScreen>
   );
 }
 
+export {socket};
 export default App;
