@@ -23,6 +23,10 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Typography from '@material-ui/core/Typography';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import Avatar from '@material-ui/core/Avatar';
+
 import './MainScreen.css';
 
 const drawerWidth = 240;
@@ -81,6 +85,9 @@ const useStyles = makeStyles((theme) => ({
     }),
     marginLeft: 0,
   },
+  inline: {
+    display: 'inline',
+  },
 }));
 
 export default function MainScreen() {
@@ -132,6 +139,19 @@ export default function MainScreen() {
       setOpenNicknameModal(false);
     }
   };
+
+  const handleNicknameDialogEnter = (event) => {
+    if (event.key === 'Enter') {
+      handleNicknameDialogClose();
+    }
+  }
+
+  const sendMessageHandlerEnter = (event) => {
+    if (event.key === 'Enter') {
+      sendMessageHandler();
+      event.preventDefault();
+    }
+  }
 
   const sendMessageHandler = () => {
     socket.emit('chat message', message);
@@ -208,6 +228,7 @@ export default function MainScreen() {
             type="email"
             fullWidth
             onChange={event => setNickname(event.target.value)}
+            onKeyDown={handleNicknameDialogEnter}
             required
           />
         </DialogContent>
@@ -224,14 +245,45 @@ export default function MainScreen() {
       >
       <div className={classes.drawerHeader} />
       <ul id="messages">
-        {allMessage.map((text, index) => (
-          <ListItem key={text}>
-            <ListItemText primary={text} />
-          </ListItem>
+        {allMessage.map((content, index) => (
+          <List disablePadding>
+            <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
+              {(() => {
+                if(content.system === true){
+                  return("");
+                }else{
+                  return(
+                    <ListItemAvatar>
+                      <Avatar alt={ content.nickname } src={ content.avatar } />
+                    </ListItemAvatar>
+                  );
+                }
+              })()
+              }
+              <ListItemText
+                style={{ padding: 0 }}
+                primary={content.nickname}
+                secondary={
+                  <React.Fragment>
+                    <Typography
+                      component="span"
+                      variant="body1"
+                      className={classes.inline}
+                      color="textPrimary"
+                    >
+                      {content.msg}
+                    </Typography>
+                    {/* {" — Wish I could come, but I'm out of town this…"} */}
+                  </React.Fragment>
+                }
+               />
+            </ListItem>
+          </List>
         ))}
       </ul>
       <form id="form" action="" style={formStyle}>
-        <input id="input" autoComplete="off" value={message} onChange={event => setMessage(event.target.value)} /><button type="button" onClick={sendMessageHandler}>Send</button>
+        <input type="text" id="input" autoComplete="off" value={message} onChange={event => setMessage(event.target.value)} onKeyDown={sendMessageHandlerEnter} />
+        <button type="button" onClick={sendMessageHandler} id="submit">Gönder</button>
       </form>
       </main>
     </div>

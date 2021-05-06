@@ -24,28 +24,71 @@ app.get('/api', (req,res) =>{
 
 var users = [];
 
+var images = [];
+images[0] = "https://www.w3schools.com/howto/img_avatar.png";
+images[1] = "https://www.w3schools.com/howto/img_avatar2.png";
+images[2] = "https://www.w3schools.com/w3images/avatar2.png";
+images[3] = "https://www.w3schools.com/w3images/avatar6.png";
+images[4] = "https://www.w3schools.com/w3images/avatar5.png";
+
 io.on('connection', (socket) => {
   console.log('Yeni kullanici giris yapti. Socket id : ' + socket.id);
-  io.to(socket.id).emit('chat message', 'Chat sistemine hoşgeldin.');
+
+  var sysContent = {
+    nickname : '',
+    color : '#000',
+    system : true,
+    msg : ''
+  }
+
+  sysContent.msg = 'Chat sistemine hoşgeldin.';
+  io.to(socket.id).emit('chat message', sysContent);
   socket.on('newuser', nickname => {
     users.push({
       "socketID" : socket.id,
-      "nickname" : nickname
+      "nickname" : nickname,
+      "color" : getRandomColor(),
+      "avatar" : images[Math.floor(Math.random() * 5)]
     })
 
     io.emit('onlineusers', {"userList" : [...users]});
-    io.to(socket.id).emit('chat message','Kullanici adini ' + nickname + ' olarak belirledin.')
+
+    sysContent.msg = 'Kullanıcı adını ' + nickname + ' olarak belirledin.';
+    io.to(socket.id).emit('chat message', sysContent);
 
     socket.once('disconnect', ()=>{
+      var user = users.find(user => user.socketID == socket.id);
+      sysContent.msg = user.nickname + ' sohbetten ayrıldı.';
+
       users = users.filter(user => user.socketID != socket.id);
+
+      io.emit('chat message', sysContent);
       console.log('Kullanici ayrildi. Socket id : ' + socket.id);
       io.emit('onlineusers', {"userList" : [...users]});
     })
-
+    
     socket.on('chat message', (msg) => {
-      io.emit('chat message', msg);
+      var user = users.find(user => user.socketID == socket.id);
+      var content = {
+        nickname : user.nickname,
+        color : user.color,
+        avatar : user.avatar,
+        system : false,
+        msg : msg
+      }
+      
+      io.emit('chat message', content);
     });
   });
 });
+
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 
 server.listen(PORT, console.log(`Server is starting at ${PORT}`));
