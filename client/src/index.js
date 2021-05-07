@@ -3,8 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import MainScreen from './screen/main';
 import {io} from 'socket.io-client';
-
-const socket = io("http://localhost:5000"); // http://localhost:5000
+const socket = process.env.REACT_APP_API_BASE === 'production' ? io() : io(process.env.REACT_APP_API_BASE);
 
 ReactDOM.render(
   <React.StrictMode>
