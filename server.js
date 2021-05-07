@@ -3,6 +3,7 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
+const cors = require('cors');
 
 const io = require("socket.io")(server, {
   cors: {
@@ -11,19 +12,24 @@ const io = require("socket.io")(server, {
   }
 });
 
+app.use(cors());
 if(process.env.NODE_ENV === 'production'){
   app.use(express.static('client/build'));
 }
 
-app.get('/api', (req,res) =>{
-  const testres = {
-    text : "selam!"
+app.get('/setNickname', (req,res) =>{
+  var p_nickname = req.query['p_nickname'];
+  console.log(p_nickname);
+  if(nicknames.indexOf(p_nickname) == -1){
+    nicknames.push(p_nickname);
+    res.json({result : true});
+  } else {
+    res.json({result : false});
   }
-  res.json(testres);
 })
 
 var users = [];
-
+var nicknames = [];
 var images = [];
 images[0] = "https://www.w3schools.com/howto/img_avatar.png";
 images[1] = "https://www.w3schools.com/howto/img_avatar2.png";
