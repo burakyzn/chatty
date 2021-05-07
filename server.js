@@ -1,3 +1,5 @@
+const path = require('path');
+const userController = require('./controllers/user'); 
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -11,6 +13,8 @@ const io = require("socket.io")(server, {
     methods : ["GET","POST"]
   }
 });
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 var users = [];
 var images = [];
@@ -45,7 +49,7 @@ io.on('connection', (socket) => {
       "socketID" : socket.id,
       "nickname" : nickname,
       "color" : getRandomColor(),
-      "avatar" : images[Math.floor(Math.random() * 5)]
+      "avatar" : null //images[Math.floor(Math.random() * 5)]
     })
 
     io.emit('onlineusers', {"userList" : [...users]});
@@ -69,7 +73,7 @@ io.on('connection', (socket) => {
       var content = {
         nickname : user.nickname,
         color : user.color,
-        avatar : user.avatar,
+        avatar : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
         system : false,
         msg : msg
       }
