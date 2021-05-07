@@ -1,1 +1,1 @@
-export const SET_NICKNAME = '/setNickname';
+export const SET_NICKNAME = '/user/setNickname';
