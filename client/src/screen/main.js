@@ -15,7 +15,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import { green } from '@material-ui/core/colors';
 import Icon from '@material-ui/core/Icon';
-import {socket} from '../App';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -23,8 +22,15 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import './MainScreen.css';
+import Typography from '@material-ui/core/Typography';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import Avatar from '@material-ui/core/Avatar';
+import axios from 'axios';
+import {socket} from '../index';
+import './main.css';
+import {SET_NICKNAME} from '../core/apis.js';
 
+const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -81,6 +87,9 @@ const useStyles = makeStyles((theme) => ({
     }),
     marginLeft: 0,
   },
+  inline: {
+    display: 'inline',
+  },
 }));
 
 export default function MainScreen() {
@@ -92,6 +101,7 @@ export default function MainScreen() {
   const [allMessage, setAllMessage] = React.useState([]);
   const [nickname, setNickname] = React.useState('');
   const [openNicknameModal, setOpenNicknameModal] = React.useState(true);
+  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
 
   const formStyle = {
     background: "rgba(0, 0, 0, 0.15)",
@@ -127,11 +137,37 @@ export default function MainScreen() {
   };
 
   const handleNicknameDialogClose = () => {
-    if(nickname.length !== 0 || nickname.length < 11){
-      socket.emit('newuser', nickname);
-      setOpenNicknameModal(false);
+    if(nickname.length > 0 || nickname.length < 11){
+      axios(BASE_API + SET_NICKNAME,{
+        params : {
+          p_nickname : nickname
+        }
+      })
+      .then((result)=>{
+        console.log(result);
+        console.log(result.data.result);
+        if(result.data.result === true){
+          socket.emit('newuser', nickname);
+          setOpenNicknameModal(false);
+        } else {
+          setIsAlertOpen(true);
+        }
+      });
     }
   };
+
+  const handleNicknameDialogEnter = (event) => {
+    if (event.key === 'Enter') {
+      handleNicknameDialogClose();
+    }
+  }
+
+  const sendMessageHandlerEnter = (event) => {
+    if (event.key === 'Enter') {
+      sendMessageHandler();
+      event.preventDefault();
+    }
+  }
 
   const sendMessageHandler = () => {
     socket.emit('chat message', message);
@@ -208,8 +244,10 @@ export default function MainScreen() {
             type="email"
             fullWidth
             onChange={event => setNickname(event.target.value)}
+            onKeyDown={handleNicknameDialogEnter}
             required
           />
+          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Başka bir kullanıcı adı seçmelisin!</DialogContentText> : null}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleNicknameDialogClose} color="primary">
@@ -224,14 +262,45 @@ export default function MainScreen() {
       >
       <div className={classes.drawerHeader} />
       <ul id="messages">
-        {allMessage.map((text, index) => (
-          <ListItem key={text}>
-            <ListItemText primary={text} />
-          </ListItem>
+        {allMessage.map((content, index) => (
+          <List disablePadding>
+            <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
+              {(() => {
+                if(content.system === true){
+                  return("");
+                }else{
+                  return(
+                    <ListItemAvatar>
+                      <Avatar alt={ content.nickname } src={ content.avatar } />
+                    </ListItemAvatar>
+                  );
+                }
+              })()
+              }
+              <ListItemText
+                style={{ padding: 0 }}
+                primary={content.nickname}
+                secondary={
+                  <React.Fragment>
+                    <Typography
+                      component="span"
+                      variant="body1"
+                      className={classes.inline}
+                      color="textPrimary"
+                    >
+                      {content.msg}
+                    </Typography>
+                    {/* {" — Wish I could come, but I'm out of town this…"} */}
+                  </React.Fragment>
+                }
+               />
+            </ListItem>
+          </List>
         ))}
       </ul>
       <form id="form" action="" style={formStyle}>
-        <input id="input" autoComplete="off" value={message} onChange={event => setMessage(event.target.value)} /><button type="button" onClick={sendMessageHandler}>Send</button>
+        <input type="text" id="input" autoComplete="off" value={message} onChange={event => setMessage(event.target.value)} onKeyDown={sendMessageHandlerEnter} />
+        <button type="button" onClick={sendMessageHandler} id="submit">Gönder</button>
       </form>
       </main>
     </div>
