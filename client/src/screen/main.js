@@ -29,6 +29,7 @@ import axios from 'axios';
 import {socket} from '../index';
 import './main.css';
 import { SET_NICKNAME, SET_AVATAR_IMG } from '../core/apis.js';
+import Grid from '@material-ui/core/Grid';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
@@ -194,6 +195,7 @@ export default function MainScreen() {
                 console.log("basarisiz");
               } else {
                 setAvatarURL(result.data.result);
+                setOpenAvatarModal(false);
               }
             }).catch((error) => {
         });
@@ -250,7 +252,9 @@ export default function MainScreen() {
           </IconButton>
         </div>
         <Divider />
-        <Avatar alt={ nickname } src={ avatarURL } style={{ height: 100, width: 100, margin:10 }} onClick={ setOpenAvatarModal } />
+        <Grid container justify = "center">
+          <Avatar alt={ nickname } src={ avatarURL } style={{ height: 80, width: 80, margin:10 }} onClick={ setOpenAvatarModal } />
+        </Grid>
         <Divider />
         <List>
           {['Genel Chat'].map((text, index) => (
@@ -299,22 +303,36 @@ export default function MainScreen() {
         <DialogTitle id="form-dialog-title">Profil Fotoğrafı Yükle</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Profil fotoğrafını değiştirmek için yükleyiniz.
+            Profil fotoğrafını değiştirmek için resim yükleyiniz.
           </DialogContentText>
-          
           <form onSubmit={ uploadAvatarImage } method="post" enctype="multipart/form-data">
-            <input type="file" name="avatar" onChange={ onAvatarChange } />
-            <button type="submit">Yükle</button>
+            <Grid container>
+              <Grid item xs={6}>
+              <input
+                    className={classes.input}
+                    id="contained-button-file"
+                    multiple
+                    name="avatar" type="file" onChange={ onAvatarChange }
+                    style = {{display : "none"}}
+                  />
+                  <label htmlFor="contained-button-file">
+                    <Button variant="contained" color="primary" component="span">
+                      Dosya Seç
+                    </Button>
+                  </label>
+              </Grid>
+              <Grid item xs={6} direction="row-reverse" style={{direction : "rtl"}}>
+                <Button style={{marginLeft : "50px"}} type="submit" variant="contained" color="primary">
+                  Yükle
+                </Button>
+              </Grid>
+              <Grid item xs={12}>
+                {avatar != null ? <p>{avatar.name}</p> : null}
+              </Grid>
+            </Grid>
           </form>
-
         </DialogContent>
-        <DialogActions>
-          <Button onClick={ handleAvatarDialogClose } color="primary">
-            Tamam
-          </Button>
-        </DialogActions>
       </Dialog>
-
       <main
         className={clsx(classes.content, {
           [classes.contentShift]: openDrawer,

@@ -17,13 +17,6 @@ const io = require("socket.io")(server, {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 var users = [];
-var images = [];
-images[0] = "https://www.w3schools.com/howto/img_avatar.png";
-images[1] = "https://www.w3schools.com/howto/img_avatar2.png";
-images[2] = "https://www.w3schools.com/w3images/avatar2.png";
-images[3] = "https://www.w3schools.com/w3images/avatar6.png";
-images[4] = "https://www.w3schools.com/w3images/avatar5.png";
-
 app.use(cors());
 
 if(process.env.NODE_ENV === 'production'){
