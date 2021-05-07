@@ -19,7 +19,6 @@ if(process.env.NODE_ENV === 'production'){
 
 app.get('/setNickname', (req,res) =>{
   var p_nickname = req.query['p_nickname'];
-  console.log(p_nickname);
   if(nicknames.indexOf(p_nickname) == -1){
     nicknames.push(p_nickname);
     res.json({result : true});

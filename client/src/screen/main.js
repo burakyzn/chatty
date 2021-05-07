@@ -144,8 +144,6 @@ export default function MainScreen() {
         }
       })
       .then((result)=>{
-        console.log(result);
-        console.log(result.data.result);
         if(result.data.result === true){
           socket.emit('newuser', nickname);
           setOpenNicknameModal(false);
