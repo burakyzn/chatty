@@ -4,7 +4,7 @@ const http = require('http');
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
-
+const routes = require('./routes/index');
 const io = require("socket.io")(server, {
   cors: {
     origin: (process.env.APP_NAME || "http://localhost:3000"),
@@ -12,29 +12,21 @@ const io = require("socket.io")(server, {
   }
 });
 
-app.use(cors());
-if(process.env.NODE_ENV === 'production'){
-  app.use(express.static('client/build'));
-}
-
-app.get('/setNickname', (req,res) =>{
-  var p_nickname = req.query['p_nickname'];
-  if(nicknames.indexOf(p_nickname) == -1){
-    nicknames.push(p_nickname);
-    res.json({result : true});
-  } else {
-    res.json({result : false});
-  }
-})
-
 var users = [];
-var nicknames = [];
 var images = [];
 images[0] = "https://www.w3schools.com/howto/img_avatar.png";
 images[1] = "https://www.w3schools.com/howto/img_avatar2.png";
 images[2] = "https://www.w3schools.com/w3images/avatar2.png";
 images[3] = "https://www.w3schools.com/w3images/avatar6.png";
 images[4] = "https://www.w3schools.com/w3images/avatar5.png";
+
+app.use(cors());
+
+if(process.env.NODE_ENV === 'production'){
+  app.use(express.static('client/build'));
+}
+
+app.use("/", routes);
 
 io.on('connection', (socket) => {
   console.log('Yeni kullanici giris yapti. Socket id : ' + socket.id);
