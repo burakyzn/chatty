@@ -107,6 +107,7 @@ export default function MainScreen() {
   const [avatar, setAvatar] = React.useState(null);
   const [avatarURL, setAvatarURL] = React.useState(null);
   const [selectedChat, setSelectedChat] = React.useState('public');
+  const messageRef = React.useRef(null);
 
   const formStyle = {
     background: "rgba(0, 0, 0, 0.15)",
@@ -218,6 +219,12 @@ export default function MainScreen() {
     socket.emit('chat message', content);
     setMessage('');
   }
+
+  React.useEffect(() => {
+    if (messageRef.current) {
+      messageRef.current.scrollIntoView({ behaviour: "smooth" });
+    }
+  }, [allMessage]);
 
   return (
     <div className={classes.root}>
@@ -353,7 +360,7 @@ export default function MainScreen() {
       <div className={classes.drawerHeader} />
       <ul id="messages">
         {allMessage.map((content, index) => (
-          <List disablePadding>
+          <List disablePadding ref={messageRef}>
             {(content.to === nickname && content.nickname === selectedChat) || 
             (content.nickname === nickname && content.to === selectedChat) || 
             (content.to === selectedChat)?
