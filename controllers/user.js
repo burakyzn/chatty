@@ -1,7 +1,9 @@
-var nicknames = [];
-var avatars = [];
 const path = require("path");
 const multer = require("multer");
+
+var nicknames = [];
+var avatars = [];
+var users = [];
 
 const storage = multer.diskStorage({
    destination: "./uploads/",
@@ -17,17 +19,19 @@ const upload = multer({
 
 const setAvatar = (req, res, next) => {
   upload(req, res, (err) => {
-    console.log(req.body['nickname']);
     var _nickname = req.body['nickname'];
-    console.log("Request file ---", req.file.filename);//Here you get file.
-    avatars[_nickname] = 'http://localhost:5000/uploads/' + req.file.filename;
-    console.log(avatars[_nickname]);
-    /*Now do where ever you want to do*/
+
+    if(process.env.NODE_ENV === 'production'){
+      //avatars[_nickname] = process.env.APP_NAME + '/uploads/' + req.file.filename;
+      return;
+    } else {
+      avatars[_nickname] = 'http://localhost:5000/uploads/' + req.file.filename;
+    }
+
     if(!err){
-      console.log("Fotograf yuklendi. Data : " + req);
       res.json({result : 'http://localhost:5000/uploads/' + req.file.filename});
     } else {
-      res.json({result : 'null'});
+      res.json({result : 'error'});
     }
  });
 };
@@ -43,8 +47,29 @@ const setNickname = (req, res, next) => {
   }
 };
 
+const getAllUsers = () => {
+  return users;
+}
+
+const getUser = (socketID) => {
+  var user = users.find(user => user.socketID == socketID);
+  return user;
+}
+
+const removeUser = (socketID) => {
+  users = users.filter(user => user.socketID != socketID);
+}
+
+const addUser = (user) => {
+  users.push(user);
+} 
+
 module.exports = {
   setNickname,
   setAvatar,
-  avatars
+  avatars,
+  getUser,
+  getAllUsers,
+  removeUser,
+  addUser
 };
