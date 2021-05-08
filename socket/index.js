@@ -43,15 +43,15 @@ const listeners = io => {
         io.emit('onlineusers', {"userList" : [...users]});
       });
       
-      socket.on('chat message', (msg) => {
+      socket.on('chat message', (msgContent) => {
         var user = userController.getUser(socket.id);
-        
         var content = {
-          nickname : user.nickname,
-          color : user.color,
-          avatar : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
-          system : false,
-          msg : msg
+          'nickname' : user.nickname,
+          'color' : user.color,
+          'avatar' : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
+          'system' : false,
+          'msg' : msgContent.message,
+          'to' : msgContent.to
         }
         
         io.emit('chat message', content);
