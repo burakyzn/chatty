@@ -28,7 +28,8 @@ import Avatar from '@material-ui/core/Avatar';
 import axios from 'axios';
 import {socket} from '../index';
 import './main.css';
-import {SET_NICKNAME} from '../core/apis.js';
+import { SET_NICKNAME, SET_AVATAR_IMG } from '../core/apis.js';
+import Grid from '@material-ui/core/Grid';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
@@ -95,13 +96,16 @@ const useStyles = makeStyles((theme) => ({
 export default function MainScreen() {
   const classes = useStyles();
   const theme = useTheme();
-  const [openDrawer, setOpenDrawer] = React.useState(false);
+  const [openDrawer, setOpenDrawer] = React.useState(true);
   const [onlineUsers, setOnlineUsers] = React.useState([]);
   const [message, setMessage] = React.useState('');
   const [allMessage, setAllMessage] = React.useState([]);
   const [nickname, setNickname] = React.useState('');
   const [openNicknameModal, setOpenNicknameModal] = React.useState(true);
+  const [openAvatarModal, setOpenAvatarModal] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
+  const [avatar, setAvatar] = React.useState(null);
+  const [avatarURL, setAvatarURL] = React.useState(null);
 
   const formStyle = {
     background: "rgba(0, 0, 0, 0.15)",
@@ -154,11 +158,49 @@ export default function MainScreen() {
     }
   };
 
+  const handleAvatarDialogClose = () => {
+    if(openAvatarModal === true){
+      setOpenAvatarModal(false);
+    }else{
+      setOpenAvatarModal(true);
+    }
+  };
+
   const handleNicknameDialogEnter = (event) => {
     if (event.key === 'Enter') {
       handleNicknameDialogClose();
     }
   }
+
+  const onAvatarChange = (event) => {
+    setAvatar(event.target.files[0]);
+  }
+
+  const uploadAvatarImage = (event) => {
+    event.preventDefault();
+    if(process.env.NODE_ENV === 'production'){
+      console.log('Canli ortam profil resmi yuklenememektedir.')
+      return;
+    } else {
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+      formData.append('nickname', nickname);
+      const config = {
+        headers: {
+          'content-type': 'multipart/form-data'
+        }
+      };
+      axios.post(BASE_API + SET_AVATAR_IMG, formData, config)
+        .then((result) => {
+          if (result.data.result === 'null') {
+            console.log("basarisiz");
+          } else {
+            setAvatarURL(result.data.result);
+            setOpenAvatarModal(false);
+          }
+        }).catch((error) => {});
+    }
+  };
 
   const sendMessageHandlerEnter = (event) => {
     if (event.key === 'Enter') {
@@ -211,6 +253,10 @@ export default function MainScreen() {
           </IconButton>
         </div>
         <Divider />
+        <Grid container justify = "center">
+          <Avatar alt={ nickname } src={ avatarURL } style={{ height: 80, width: 80, margin:10 }} onClick={ setOpenAvatarModal } />
+        </Grid>
+        <Divider />
         <List>
           {['Genel Chat'].map((text, index) => (
             <ListItem button key={text}>
@@ -252,6 +298,44 @@ export default function MainScreen() {
             Tamam
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog open={openAvatarModal} onClose={handleAvatarDialogClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Profil Fotoğrafı Yükle</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Profil fotoğrafını değiştirmek için resim yükleyiniz.
+          </DialogContentText>
+          <form onSubmit={ uploadAvatarImage } method="post" enctype="multipart/form-data">
+            <Grid container>
+              <Grid item xs={6}>
+              <input
+                    className={classes.input}
+                    id="contained-button-file"
+                    multiple
+                    name="avatar" type="file" onChange={ onAvatarChange }
+                    style = {{display : "none"}}
+                  />
+                  <label htmlFor="contained-button-file">
+                    <Button variant="contained" color="primary" component="span">
+                      Dosya Seç
+                    </Button>
+                  </label>
+              </Grid>
+              <Grid item xs={6} direction="row-reverse" style={{direction : "rtl"}}>
+                <Button style={{marginLeft : "50px"}} type="submit" variant="contained" color="primary">
+                  Yükle
+                </Button>
+              </Grid>
+              <Grid item xs={12}>
+                {avatar != null ? <p>{avatar.name}</p> : null}
+              </Grid>
+              <Grid item xs={12}>
+                {process.env.NODE_ENV === 'production' ? <p>Canlı ortamda profil fotografi yüklenmesi engellenmiştir.</p> : null}
+              </Grid>
+            </Grid>
+          </form>
+        </DialogContent>
       </Dialog>
       <main
         className={clsx(classes.content, {
