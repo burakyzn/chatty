@@ -106,6 +106,7 @@ export default function MainScreen() {
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [avatar, setAvatar] = React.useState(null);
   const [avatarURL, setAvatarURL] = React.useState(null);
+  const [selectedChat, setSelectedChat] = React.useState('public');
 
   const formStyle = {
     background: "rgba(0, 0, 0, 0.15)",
@@ -210,7 +211,11 @@ export default function MainScreen() {
   }
 
   const sendMessageHandler = () => {
-    socket.emit('chat message', message);
+    let content = {
+      'to' : selectedChat,
+      'message' : message
+    };
+    socket.emit('chat message', content);
     setMessage('');
   }
 
@@ -233,9 +238,9 @@ export default function MainScreen() {
           >
             <MenuIcon />
           </IconButton>
-          {/* <Typography variant="h6" noWrap>
-            XXX Kullanicisi
-          </Typography> */}
+          <Typography variant="h6" noWrap>
+            {selectedChat === 'public' ? 'Genel' : selectedChat}
+          </Typography>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -256,10 +261,13 @@ export default function MainScreen() {
         <Grid container justify = "center">
           <Avatar alt={ nickname } src={ avatarURL } style={{ height: 80, width: 80, margin:10 }} onClick={ setOpenAvatarModal } />
         </Grid>
+        <Grid container justify = "center">
+          {nickname}
+        </Grid>
         <Divider />
         <List>
           {['Genel Chat'].map((text, index) => (
-            <ListItem button key={text}>
+            <ListItem button key={text} onClick={()=>{setSelectedChat('public')}}>
               <ListItemText primary={text} />
             </ListItem>
           ))}
@@ -267,7 +275,7 @@ export default function MainScreen() {
         <Divider />
         <List>
           {onlineUsers.map((item, index) => (
-            <ListItem button key={item.socketID}>
+            <ListItem button key={item.socketID} onClick={() => {((item.nickname !== nickname) && setSelectedChat(item.nickname))}}>
               <Icon className="fas fa-circle" style={{ color: green[500] }} />
               <ListItemText primary={item.nickname} style={{marginLeft : 10}}/>
             </ListItem>
@@ -346,7 +354,10 @@ export default function MainScreen() {
       <ul id="messages">
         {allMessage.map((content, index) => (
           <List disablePadding>
-            <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
+            {(content.to === nickname && content.nickname === selectedChat) || 
+            (content.nickname === nickname && content.to === selectedChat) || 
+            (content.to === selectedChat)?
+              <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
               {(() => {
                 if(content.system === true){
                   return("");
@@ -376,7 +387,8 @@ export default function MainScreen() {
                   </React.Fragment>
                 }
                />
-            </ListItem>
+            </ListItem> : null
+            }
           </List>
         ))}
       </ul>
