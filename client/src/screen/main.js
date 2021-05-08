@@ -158,8 +158,6 @@ export default function MainScreen() {
     }
   };
 
-
-
   const handleAvatarDialogClose = () => {
     if(openAvatarModal === true){
       setOpenAvatarModal(false);
@@ -167,7 +165,6 @@ export default function MainScreen() {
       setOpenAvatarModal(true);
     }
   };
-
 
   const handleNicknameDialogEnter = (event) => {
     if (event.key === 'Enter') {
@@ -181,24 +178,28 @@ export default function MainScreen() {
 
   const uploadAvatarImage = (event) => {
     event.preventDefault();
-    const formData = new FormData();
-        formData.append('avatar', avatar);
-        formData.append('nickname', nickname);
-        const config = {
-            headers: {
-                'content-type': 'multipart/form-data'
-            }
-        };
-        axios.post(BASE_API + SET_AVATAR_IMG, formData, config)
-            .then((result) => {
-              if(result.data.result === 'null'){
-                console.log("basarisiz");
-              } else {
-                setAvatarURL(result.data.result);
-                setOpenAvatarModal(false);
-              }
-            }).catch((error) => {
-        });
+    if(process.env.NODE_ENV === 'production'){
+      console.log('Canli ortam profil resmi yuklenememektedir.')
+      return;
+    } else {
+      const formData = new FormData();
+      formData.append('avatar', avatar);
+      formData.append('nickname', nickname);
+      const config = {
+        headers: {
+          'content-type': 'multipart/form-data'
+        }
+      };
+      axios.post(BASE_API + SET_AVATAR_IMG, formData, config)
+        .then((result) => {
+          if (result.data.result === 'null') {
+            console.log("basarisiz");
+          } else {
+            setAvatarURL(result.data.result);
+            setOpenAvatarModal(false);
+          }
+        }).catch((error) => {});
+    }
   };
 
   const sendMessageHandlerEnter = (event) => {
@@ -328,6 +329,9 @@ export default function MainScreen() {
               </Grid>
               <Grid item xs={12}>
                 {avatar != null ? <p>{avatar.name}</p> : null}
+              </Grid>
+              <Grid item xs={12}>
+                {process.env.NODE_ENV === 'production' ? <p>Canlı ortamda profil fotografi yüklenmesi engellenmiştir.</p> : null}
               </Grid>
             </Grid>
           </form>
