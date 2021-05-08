@@ -107,6 +107,7 @@ export default function MainScreen() {
   const [avatar, setAvatar] = React.useState(null);
   const [avatarURL, setAvatarURL] = React.useState(null);
   const [selectedChat, setSelectedChat] = React.useState('public');
+  const [rooms, setRooms] = React.useState([]);
   const messageRef = React.useRef(null);
 
   const formStyle = {
@@ -125,6 +126,12 @@ export default function MainScreen() {
   React.useEffect(() => {
     socket.on("onlineusers", data => {
       setOnlineUsers(data.userList);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    socket.on("room list", data => {
+      setRooms(data.roomList);
     });
   }, []);
   
@@ -211,13 +218,26 @@ export default function MainScreen() {
     }
   }
 
-  const sendMessageHandler = () => {
+  const sendRoomMessageHandler = () => {
     let content = {
       'to' : selectedChat,
       'message' : message
-    };
-    socket.emit('chat message', content);
+    }
+    socket.emit('chat room message', content);
     setMessage('');
+  }
+
+  const sendMessageHandler = () => {
+    if(rooms.indexOf(selectedChat) == -1){
+      let content = {
+        'to' : selectedChat,
+        'message' : message
+      };
+     socket.emit('chat message', content);
+     setMessage('');
+    } else {
+      sendRoomMessageHandler();
+    }
   }
 
   React.useEffect(() => {
@@ -225,6 +245,10 @@ export default function MainScreen() {
       messageRef.current.scrollIntoView({ behaviour: "smooth" });
     }
   }, [allMessage]);
+
+  const testHandler = () =>{
+    socket.emit('create room', 'Benim Grubum');
+  }
 
   return (
     <div className={classes.root}>
@@ -271,10 +295,13 @@ export default function MainScreen() {
         <Grid container justify = "center">
           {nickname}
         </Grid>
+        <Grid container justify = "center">
+          <Button onClick={testHandler}> Grup Oluştur</Button>
+        </Grid>
         <Divider />
         <List>
-          {['Genel Chat'].map((text, index) => (
-            <ListItem button key={text} onClick={()=>{setSelectedChat('public')}}>
+          {['Genel Chat', ...rooms].map((text, index) => (
+            <ListItem button key={text} onClick={()=>{(text === 'GenelChat' && setSelectedChat('public')) || setSelectedChat(text)}}>
               <ListItemText primary={text} />
             </ListItem>
           ))}

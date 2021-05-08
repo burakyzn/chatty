@@ -4,7 +4,7 @@ const userController = require('../controllers/user');
 const listeners = io => {
   io.on('connection', (socket) => {
     console.log('Yeni kullanici giris yapti. Socket id : ' + socket.id);
-  
+    
     var sysContent = {
       nickname : '',
       color : '#000',
@@ -20,7 +20,8 @@ const listeners = io => {
         "socketID" : socket.id,
         "nickname" : nickname,
         "color" : getRandomColor(),
-        "avatar" : null
+        "avatar" : null,
+        'rooms' : ['Ornek Grup']
       };
 
       userController.addUser(user);
@@ -30,6 +31,9 @@ const listeners = io => {
 
       var users = userController.getAllUsers();
       io.emit('onlineusers', {"userList" : [...users]});
+
+      var rooms = userController.getRooms();
+      io.to(socket.id).emit('room list', {"roomList" : [...rooms]});
 
       socket.once('disconnect', ()=>{
         var user = userController.getUser(socket.id);
@@ -56,6 +60,42 @@ const listeners = io => {
         
         io.emit('chat message', content);
       });
+
+      socket.on('chat room message', (msgContent) => {
+        var user = userController.getUser(socket.id);
+        var content = {
+          'nickname' : user.nickname,
+          'color' : user.color,
+          'avatar' : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
+          'system' : false,
+          'msg' : msgContent.message,
+          'to' : msgContent.to
+        }
+        
+        io.to(msgContent.to).emit('chat message', content);
+      });
+
+      socket.on('create room', (roomName) => {
+        socket.join(roomName);
+        userController.addRoomToUser(socket.id, roomName);
+        userController.addRoom(roomName);
+        var rooms = userController.getRooms();
+        io.emit('room list', {"roomList" : [...rooms]});
+      });
+
+      socket.on('join room', (roomName) => {
+        socket.join(roomName);
+        userController.addRoomToUser(socket.id, roomName);
+      });
+    });
+
+    io.of("/").adapter.on("create-room", (room) => {
+      console.log(`Yeni oda kuruldu :  ${room}`);
+    });
+
+    io.of("/").adapter.on("join-room", (room, id) => {
+      console.log(`${id} socket idli kullanici odaya katildi. ${room}`);
+      io.to(room).emit('Yeni kullanici odaya katildi!');
     });
   });
 }

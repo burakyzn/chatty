@@ -4,6 +4,7 @@ const multer = require("multer");
 var nicknames = [];
 var avatars = [];
 var users = [];
+var rooms = [];
 
 const storage = multer.diskStorage({
    destination: "./uploads/",
@@ -64,6 +65,27 @@ const addUser = (user) => {
   users.push(user);
 } 
 
+const getRoomsOfUser = socketID => {
+  var user = users.find(user => user.socketID == socketID);
+  return user.rooms;
+}
+
+const addRoomToUser = (socketID, roomName) =>{
+  var user = users.find(user => user.socketID == socketID);
+  var otherUsers = users.filter(user => user.socketID != socketID);
+  user.rooms.push(roomName);
+  otherUsers.push(user);
+}
+
+const addRoom = (roomName) => {
+  if(rooms.indexOf(roomName) == -1)
+    rooms.push(roomName);
+}
+
+const getRooms = () => {
+  return rooms;
+}
+
 module.exports = {
   setNickname,
   setAvatar,
@@ -71,5 +93,9 @@ module.exports = {
   getUser,
   getAllUsers,
   removeUser,
-  addUser
+  addUser,
+  getRoomsOfUser,
+  addRoomToUser,
+  addRoom,
+  getRooms
 };
