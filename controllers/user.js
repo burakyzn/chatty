@@ -105,6 +105,5 @@ module.exports = {
   getRoomsOfUser,
   addRoomToUser,
   addRoom,
-  getRooms,
   getRoomList
 };
