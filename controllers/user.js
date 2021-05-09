@@ -79,7 +79,7 @@ const removeRoomOfUser = (socketID, room) => {
       tmp = 1;
     }});
 
-  if(tmp = 1){
+  if(tmp === 0){
     rooms = rooms.filter(x => x != room);
   }
 }
