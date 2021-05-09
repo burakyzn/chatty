@@ -104,11 +104,13 @@ export default function MainScreen() {
   const [openNicknameModal, setOpenNicknameModal] = React.useState(true);
   const [openAvatarModal, setOpenAvatarModal] = React.useState(false);
   const [openCreateRoomModal, setOpenCreateRoomModal] = React.useState(false);
+  const [openRoomsModal, setOpenRoomsModal] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [avatar, setAvatar] = React.useState(null);
   const [avatarURL, setAvatarURL] = React.useState(null);
   const [selectedChat, setSelectedChat] = React.useState('public');
   const [rooms, setRooms] = React.useState([]);
+  const [myRooms, setMyRooms] = React.useState([]);
   const [createRoomName, setCreateRoomName] = React.useState('');
   const messageRef = React.useRef(null);
 
@@ -136,6 +138,12 @@ export default function MainScreen() {
       setRooms(data.roomList);
     });
   }, []);
+
+  React.useEffect(() => {
+    socket.on("my room list", data => {
+      setMyRooms(data.myRoomList);
+    });
+  }, []);
   
   React.useEffect(() => {
     socket.on("chat message", msg => {
@@ -153,7 +161,6 @@ export default function MainScreen() {
 
   const handleCreateRoomModalOpen = () => {
     setOpenCreateRoomModal(true);
-    // socket.emit('create room', 'Benim Grubum');
   };
 
   const handleCreateRoomModalClose = () => {
@@ -181,6 +188,18 @@ export default function MainScreen() {
         }
       });
     }
+  };
+
+  const handleRoomsDialogButton = (text) => {
+    socket.emit('join room', text);
+    handleRoomsDialogClose();
+  }
+
+  const handleRoomsDialogClose = () => {
+    setOpenRoomsModal(false);
+  };
+  const handleRoomsDialogOpen = () => {
+    setOpenRoomsModal(true);
   };
 
   const handleAvatarDialogClose = () => {
@@ -314,12 +333,16 @@ const handleCreateRoomDialogEnter = (event) => {
           {nickname}
         </Grid>
         <Divider />
+        <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleRoomsDialogOpen }>
+          Bir Odaya Katıl
+        </Button>
+        <Divider />
         <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleCreateRoomModalOpen }>
           Oda Oluştur
         </Button>
         <Divider />
         <List>
-          {['Genel Chat', ...rooms].map((text, index) => (
+          {['Genel Chat', ...myRooms].map((text, index) => (
             <ListItem button key={text} onClick={()=>{(text === 'GenelChat' && setSelectedChat('public')) || setSelectedChat(text)}}>
               <ListItemText primary={text} />
             </ListItem>
@@ -420,6 +443,29 @@ const handleCreateRoomDialogEnter = (event) => {
         <DialogActions>
           <Button onClick={ handleCreateRoomModalClose } color="primary">
             Tamam
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={ openRoomsModal } onClose={ handleRoomsDialogClose } aria-labelledby="form-dialog-title" fullWidth maxWidth="sm">
+        <DialogTitle id="form-dialog-title">Odaya Katıl</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+          <List>
+          {rooms.map((text, index) => (
+            <ListItem>
+              <Button key={text} variant="contained" color="primary" component="span" style={{ marginRight: 10 }} onClick={ handleRoomsDialogButton(text) } >
+                +
+              </Button>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={ handleRoomsDialogClose } color="primary">
+            Kapat
           </Button>
         </DialogActions>
       </Dialog>

@@ -21,7 +21,7 @@ const listeners = io => {
         "nickname" : nickname,
         "color" : getRandomColor(),
         "avatar" : null,
-        'rooms' : ['Ornek Grup']
+        'rooms' : []
       };
 
       userController.addUser(user);
@@ -79,13 +79,17 @@ const listeners = io => {
         socket.join(roomName);
         userController.addRoomToUser(socket.id, roomName);
         userController.addRoom(roomName);
-        var rooms = userController.getRooms();
-        io.emit('room list', {"roomList" : [...rooms]});
+        var rooms = userController.getRoomsOfUser(socket.id);
+        //io.emit('room list', {"roomList" : [...rooms]});
+        io.to(socket.id).emit('my room list', {"myRoomList" : [...rooms]});
       });
 
       socket.on('join room', (roomName) => {
         socket.join(roomName);
         userController.addRoomToUser(socket.id, roomName);
+
+        var rooms = userController.getRoomsOfUser(socket.id);
+        io.to(socket.id).emit('my room list', {"myRoomList" : [...rooms]});
       });
     });
 
