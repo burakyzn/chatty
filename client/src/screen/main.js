@@ -103,11 +103,13 @@ export default function MainScreen() {
   const [nickname, setNickname] = React.useState('');
   const [openNicknameModal, setOpenNicknameModal] = React.useState(true);
   const [openAvatarModal, setOpenAvatarModal] = React.useState(false);
+  const [openCreateRoomModal, setOpenCreateRoomModal] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [avatar, setAvatar] = React.useState(null);
   const [avatarURL, setAvatarURL] = React.useState(null);
   const [selectedChat, setSelectedChat] = React.useState('public');
   const [rooms, setRooms] = React.useState([]);
+  const [createRoomName, setCreateRoomName] = React.useState('');
   const messageRef = React.useRef(null);
 
   const formStyle = {
@@ -149,6 +151,20 @@ export default function MainScreen() {
     setOpenDrawer(false);
   };
 
+  const handleCreateRoomModalOpen = () => {
+    setOpenCreateRoomModal(true);
+    // socket.emit('create room', 'Benim Grubum');
+  };
+
+  const handleCreateRoomModalClose = () => {
+    if(createRoomName === ''){
+      setIsAlertOpen(true);
+    }else{
+      socket.emit('create room', createRoomName);
+      setOpenCreateRoomModal(false);
+    }
+  };
+
   const handleNicknameDialogClose = () => {
     if(nickname.length > 0 || nickname.length < 11){
       axios(BASE_API + SET_NICKNAME,{
@@ -180,6 +196,12 @@ export default function MainScreen() {
       handleNicknameDialogClose();
     }
   }
+
+const handleCreateRoomDialogEnter = (event) => {
+  if (event.key === 'Enter') {
+    handleCreateRoomModalClose();
+  }
+}
 
   const onAvatarChange = (event) => {
     setAvatar(event.target.files[0]);
@@ -228,7 +250,7 @@ export default function MainScreen() {
   }
 
   const sendMessageHandler = () => {
-    if(rooms.indexOf(selectedChat) == -1){
+    if(rooms.indexOf(selectedChat) === -1){
       let content = {
         'to' : selectedChat,
         'message' : message
@@ -245,10 +267,6 @@ export default function MainScreen() {
       messageRef.current.scrollIntoView({ behaviour: "smooth" });
     }
   }, [allMessage]);
-
-  const testHandler = () =>{
-    socket.emit('create room', 'Benim Grubum');
-  }
 
   return (
     <div className={classes.root}>
@@ -295,9 +313,10 @@ export default function MainScreen() {
         <Grid container justify = "center">
           {nickname}
         </Grid>
-        <Grid container justify = "center">
-          <Button onClick={testHandler}> Grup Oluştur</Button>
-        </Grid>
+        <Divider />
+        <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleCreateRoomModalOpen }>
+          Oda Oluştur
+        </Button>
         <Divider />
         <List>
           {['Genel Chat', ...rooms].map((text, index) => (
@@ -342,7 +361,7 @@ export default function MainScreen() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openAvatarModal} onClose={handleAvatarDialogClose} aria-labelledby="form-dialog-title">
+      <Dialog open={openAvatarModal} onClose={ handleAvatarDialogClose } aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Profil Fotoğrafı Yükle</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -379,6 +398,32 @@ export default function MainScreen() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={ openCreateRoomModal } onClose={ handleCreateRoomModalClose } aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Oda Oluştur</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="room_name"
+            label="Oda adı"
+            type="text"
+            fullWidth
+            onChange={ event => setCreateRoomName(event.target.value) }
+            onKeyDown={ handleCreateRoomDialogEnter }
+            required
+          />
+          </DialogContentText>
+          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Bir oda adı girmelisin!</DialogContentText> : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={ handleCreateRoomModalClose } color="primary">
+            Tamam
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <main
         className={clsx(classes.content, {
           [classes.contentShift]: openDrawer,
