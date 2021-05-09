@@ -100,6 +100,14 @@ const listeners = io => {
         "myRoomList": [...rooms]
       });
     });
+
+    socket.on('delete user from room', (roomName) => {
+      userController.removeRoomOfUser(socket.id, roomName);
+      var rooms = userController.getRoomsOfUser(socket.id);
+      io.to(socket.id).emit('my room list', {
+        "myRoomList": [...rooms]
+      });
+    });
   });
 }
 
