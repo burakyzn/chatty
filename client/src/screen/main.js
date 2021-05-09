@@ -28,7 +28,7 @@ import Avatar from '@material-ui/core/Avatar';
 import axios from 'axios';
 import {socket} from '../index';
 import './main.css';
-import { SET_NICKNAME, SET_AVATAR_IMG } from '../core/apis.js';
+import { SET_NICKNAME, SET_AVATAR_IMG, GET_ROOM_LIST } from '../core/apis.js';
 import Grid from '@material-ui/core/Grid';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
@@ -103,9 +103,16 @@ export default function MainScreen() {
   const [nickname, setNickname] = React.useState('');
   const [openNicknameModal, setOpenNicknameModal] = React.useState(true);
   const [openAvatarModal, setOpenAvatarModal] = React.useState(false);
+  const [openCreateRoomModal, setOpenCreateRoomModal] = React.useState(false);
+  const [openRoomsModal, setOpenRoomsModal] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [avatar, setAvatar] = React.useState(null);
   const [avatarURL, setAvatarURL] = React.useState(null);
+  const [selectedChat, setSelectedChat] = React.useState('public');
+  const [rooms, setRooms] = React.useState([]);
+  const [myRooms, setMyRooms] = React.useState([]);
+  const [createRoomName, setCreateRoomName] = React.useState('');
+  const messageRef = React.useRef(null);
 
   const formStyle = {
     background: "rgba(0, 0, 0, 0.15)",
@@ -125,6 +132,12 @@ export default function MainScreen() {
       setOnlineUsers(data.userList);
     });
   }, []);
+
+  React.useEffect(() => {
+    socket.on("my room list", data => {
+      setMyRooms(data.myRoomList);
+    });
+  }, []);
   
   React.useEffect(() => {
     socket.on("chat message", msg => {
@@ -138,6 +151,19 @@ export default function MainScreen() {
 
   const handleDrawerClose = () => {
     setOpenDrawer(false);
+  };
+
+  const handleCreateRoomModalOpen = () => {
+    setOpenCreateRoomModal(true);
+  };
+
+  const handleCreateRoomModalClose = () => {
+    if(createRoomName === ''){
+      setIsAlertOpen(true);
+    }else{
+      socket.emit('create room', createRoomName);
+      setOpenCreateRoomModal(false);
+    }
   };
 
   const handleNicknameDialogClose = () => {
@@ -158,6 +184,31 @@ export default function MainScreen() {
     }
   };
 
+  const handleRoomsDialogButton = (text) => {
+    socket.emit('join room', text);
+    setOpenRoomsModal(false);
+  }
+
+  const handleRoomsDialogClose = () => {
+    setOpenRoomsModal(false);
+  };
+
+  const handleRoomsDialogOpen = () => {
+    axios(BASE_API + GET_ROOM_LIST, {
+      params : {
+        'p_nickname' : nickname
+      }
+    })
+    .then((result)=>{
+      if(result.data.result === true){
+        setRooms([...result.data.roomList]);
+        setOpenRoomsModal(true);
+      } else {
+        console.log('Room list error');
+      }
+    });
+  };
+
   const handleAvatarDialogClose = () => {
     if(openAvatarModal === true){
       setOpenAvatarModal(false);
@@ -171,6 +222,12 @@ export default function MainScreen() {
       handleNicknameDialogClose();
     }
   }
+
+const handleCreateRoomDialogEnter = (event) => {
+  if (event.key === 'Enter') {
+    handleCreateRoomModalClose();
+  }
+}
 
   const onAvatarChange = (event) => {
     setAvatar(event.target.files[0]);
@@ -209,10 +266,33 @@ export default function MainScreen() {
     }
   }
 
-  const sendMessageHandler = () => {
-    socket.emit('chat message', message);
+  const sendRoomMessageHandler = () => {
+    let content = {
+      'to' : selectedChat,
+      'message' : message
+    }
+    socket.emit('chat room message', content);
     setMessage('');
   }
+
+  const sendMessageHandler = () => {
+    if(rooms.indexOf(selectedChat) === -1){
+      let content = {
+        'to' : selectedChat,
+        'message' : message
+      };
+     socket.emit('chat message', content);
+     setMessage('');
+    } else {
+      sendRoomMessageHandler();
+    }
+  }
+
+  React.useEffect(() => {
+    if (messageRef.current) {
+      messageRef.current.scrollIntoView({ behaviour: "smooth" });
+    }
+  }, [allMessage]);
 
   return (
     <div className={classes.root}>
@@ -233,9 +313,9 @@ export default function MainScreen() {
           >
             <MenuIcon />
           </IconButton>
-          {/* <Typography variant="h6" noWrap>
-            XXX Kullanicisi
-          </Typography> */}
+          <Typography variant="h6" noWrap>
+            {selectedChat === 'public' ? 'Genel' : selectedChat}
+          </Typography>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -256,10 +336,21 @@ export default function MainScreen() {
         <Grid container justify = "center">
           <Avatar alt={ nickname } src={ avatarURL } style={{ height: 80, width: 80, margin:10 }} onClick={ setOpenAvatarModal } />
         </Grid>
+        <Grid container justify = "center">
+          {nickname}
+        </Grid>
+        <Divider />
+        <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleRoomsDialogOpen }>
+          Bir Odaya Katıl
+        </Button>
+        <Divider />
+        <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleCreateRoomModalOpen }>
+          Oda Oluştur
+        </Button>
         <Divider />
         <List>
-          {['Genel Chat'].map((text, index) => (
-            <ListItem button key={text}>
+          {['Genel Chat', ...myRooms].map((text, index) => (
+            <ListItem button key={text} onClick={()=>{(text === 'GenelChat' && setSelectedChat('public')) || setSelectedChat(text)}}>
               <ListItemText primary={text} />
             </ListItem>
           ))}
@@ -267,7 +358,7 @@ export default function MainScreen() {
         <Divider />
         <List>
           {onlineUsers.map((item, index) => (
-            <ListItem button key={item.socketID}>
+            <ListItem button key={item.socketID} onClick={() => {((item.nickname !== nickname) && setSelectedChat(item.nickname))}}>
               <Icon className="fas fa-circle" style={{ color: green[500] }} />
               <ListItemText primary={item.nickname} style={{marginLeft : 10}}/>
             </ListItem>
@@ -300,7 +391,7 @@ export default function MainScreen() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openAvatarModal} onClose={handleAvatarDialogClose} aria-labelledby="form-dialog-title">
+      <Dialog open={openAvatarModal} onClose={ handleAvatarDialogClose } aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Profil Fotoğrafı Yükle</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -337,6 +428,57 @@ export default function MainScreen() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={ openCreateRoomModal } onClose={ handleCreateRoomModalClose } aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Oda Oluştur</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="room_name"
+            label="Oda adı"
+            type="text"
+            fullWidth
+            onChange={ event => setCreateRoomName(event.target.value) }
+            onKeyDown={ handleCreateRoomDialogEnter }
+            required
+          />
+          </DialogContentText>
+          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Bir oda adı girmelisin!</DialogContentText> : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={ handleCreateRoomModalClose } color="primary">
+            Tamam
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={ openRoomsModal } onClose={ handleRoomsDialogClose } aria-labelledby="form-dialog-title" fullWidth maxWidth="sm">
+        <DialogTitle id="form-dialog-title">Odaya Katıl</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+          <List>
+          {rooms.map((text, index) => (
+            <ListItem>
+              <Button key={text} variant="contained" color="primary" component="span" style={{ marginRight: 10 }} onClick={()=> {
+                handleRoomsDialogButton(text);
+              }} >
+                +
+              </Button>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={ handleRoomsDialogClose } color="primary">
+            Kapat
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <main
         className={clsx(classes.content, {
           [classes.contentShift]: openDrawer,
@@ -345,8 +487,11 @@ export default function MainScreen() {
       <div className={classes.drawerHeader} />
       <ul id="messages">
         {allMessage.map((content, index) => (
-          <List disablePadding>
-            <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
+          <List disablePadding ref={messageRef}>
+            {(content.to === nickname && content.nickname === selectedChat) || 
+            (content.nickname === nickname && content.to === selectedChat) || 
+            (content.to === selectedChat)?
+              <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
               {(() => {
                 if(content.system === true){
                   return("");
@@ -376,7 +521,8 @@ export default function MainScreen() {
                   </React.Fragment>
                 }
                />
-            </ListItem>
+            </ListItem> : null
+            }
           </List>
         ))}
       </ul>
