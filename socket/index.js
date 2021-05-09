@@ -32,9 +32,6 @@ const listeners = io => {
       var users = userController.getAllUsers();
       io.emit('onlineusers', {"userList" : [...users]});
 
-      var rooms = userController.getRooms();
-      io.to(socket.id).emit('room list', {"roomList" : [...rooms]});
-
       socket.once('disconnect', ()=>{
         var user = userController.getUser(socket.id);
         sysContent.msg = user.nickname + ' sohbetten ayrıldı.';
@@ -74,23 +71,6 @@ const listeners = io => {
         
         io.to(msgContent.to).emit('chat message', content);
       });
-
-      socket.on('create room', (roomName) => {
-        socket.join(roomName);
-        userController.addRoomToUser(socket.id, roomName);
-        userController.addRoom(roomName);
-        var rooms = userController.getRoomsOfUser(socket.id);
-        //io.emit('room list', {"roomList" : [...rooms]});
-        io.to(socket.id).emit('my room list', {"myRoomList" : [...rooms]});
-      });
-
-      socket.on('join room', (roomName) => {
-        socket.join(roomName);
-        userController.addRoomToUser(socket.id, roomName);
-
-        var rooms = userController.getRoomsOfUser(socket.id);
-        io.to(socket.id).emit('my room list', {"myRoomList" : [...rooms]});
-      });
     });
 
     io.of("/").adapter.on("create-room", (room) => {
@@ -100,6 +80,25 @@ const listeners = io => {
     io.of("/").adapter.on("join-room", (room, id) => {
       console.log(`${id} socket idli kullanici odaya katildi. ${room}`);
       io.to(room).emit('Yeni kullanici odaya katildi!');
+    });
+
+    socket.on('create room', (roomName) => {
+      socket.join(roomName);
+      userController.addRoomToUser(socket.id, roomName);
+      userController.addRoom(roomName);
+      var rooms = userController.getRoomsOfUser(socket.id);
+      io.to(socket.id).emit('my room list', {
+        "myRoomList": [...rooms]
+      });
+    });
+
+    socket.on('join room', (roomName) => {
+      socket.join(roomName);
+      userController.addRoomToUser(socket.id, roomName);
+      var rooms = userController.getRoomsOfUser(socket.id);
+      io.to(socket.id).emit('my room list', {
+        "myRoomList": [...rooms]
+      });
     });
   });
 }
