@@ -288,6 +288,12 @@ const handleCreateRoomDialogEnter = (event) => {
     }
   }
 
+  const removeRoomOfUser = () => {
+    socket.emit('delete user from room', selectedChat);
+
+    setSelectedChat('public');
+  }
+
   React.useEffect(() => {
     if (messageRef.current) {
       messageRef.current.scrollIntoView({ behaviour: "smooth" });
@@ -313,9 +319,18 @@ const handleCreateRoomDialogEnter = (event) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap>
-            {selectedChat === 'public' ? 'Genel' : selectedChat}
-          </Typography>
+          <Grid container justify = "flex-start">
+            <Typography variant="h6" noWrap>
+              {selectedChat === 'public' ? 'Genel Chat' : selectedChat}
+            </Typography>
+          </Grid>
+          {selectedChat === 'public' ? null : (
+            <Grid container justify = "flex-end">
+              <Button variant="contained" color="secondary" component="span" style={{ margin: 10 }} onClick={ removeRoomOfUser }>
+                Odadan Ayrıl
+              </Button>
+            </Grid>)
+          }
         </Toolbar>
       </AppBar>
       <Drawer
@@ -348,9 +363,16 @@ const handleCreateRoomDialogEnter = (event) => {
           Oda Oluştur
         </Button>
         <Divider />
+        <List style={{ margin: 0, padding: 0 }}>
+          {['Genel Chat'].map((text, index) => (
+            <ListItem button key={text} onClick={()=>{ setSelectedChat('public') }}>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
         <List>
-          {['Genel Chat', ...myRooms].map((text, index) => (
-            <ListItem button key={text} onClick={()=>{(text === 'GenelChat' && setSelectedChat('public')) || setSelectedChat(text)}}>
+          {[...myRooms].map((text, index) => (
+            <ListItem button key={text} onClick={()=>{ setSelectedChat(text) }}>
               <ListItemText primary={text} />
             </ListItem>
           ))}
