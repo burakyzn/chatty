@@ -73,40 +73,62 @@ const listeners = io => {
       });
     });
 
-    io.of("/").adapter.on("create-room", (room) => {
-      console.log(`Yeni oda kuruldu :  ${room}`);
-    });
-
-    io.of("/").adapter.on("join-room", (room, id) => {
-      console.log(`${id} socket idli kullanici odaya katildi. ${room}`);
-      io.to(room).emit('Yeni kullanici odaya katildi!');
-    });
-
-    socket.on('create room', (roomName) => {
-      socket.join(roomName);
-      userController.addRoomToUser(socket.id, roomName);
-      userController.addRoom(roomName);
-      var rooms = userController.getRoomsOfUser(socket.id);
+    socket.on('create room', (content) => {
+      socket.join(content.room);
+      userController.addRoomToUser(socket.id, content.room);
+      userController.addRoom(content.room);
+      let rooms = userController.getRoomsOfUser(socket.id);
       io.to(socket.id).emit('my room list', {
         "myRoomList": [...rooms]
       });
+
+      let sysContent = {
+        'nickname' : '',
+        'color' : '#000',
+        'system' : true,
+        'msg' : content.nickname + ', ' + content.room + ' odasini kurdu.',
+        'to' : content.room
+      }
+
+      io.to(content.room).emit('chat message', sysContent);
     });
 
-    socket.on('join room', (roomName) => {
-      socket.join(roomName);
-      userController.addRoomToUser(socket.id, roomName);
-      var rooms = userController.getRoomsOfUser(socket.id);
+    socket.on('join room', (content) => {
+      socket.join(content.room);
+      userController.addRoomToUser(socket.id, content.room);
+      let rooms = userController.getRoomsOfUser(socket.id);
       io.to(socket.id).emit('my room list', {
         "myRoomList": [...rooms]
       });
+
+      let sysContent = {
+        'nickname' : '',
+        'color' : '#000',
+        'system' : true,
+        'msg' : content.nickname + ' odaya katildi.',
+        'to' : content.room
+      }
+
+      io.to(content.room).emit('chat message', sysContent);
     });
 
-    socket.on('delete user from room', (roomName) => {
-      userController.removeRoomOfUser(socket.id, roomName);
-      var rooms = userController.getRoomsOfUser(socket.id);
+    socket.on('delete user from room', (content) => {
+      userController.removeRoomOfUser(socket.id, content.room);
+      let rooms = userController.getRoomsOfUser(socket.id);
       io.to(socket.id).emit('my room list', {
         "myRoomList": [...rooms]
       });
+
+      socket.leave(content.room);
+      let sysContent = {
+        'nickname' : '',
+        'color' : '#000',
+        'system' : true,
+        'msg' : content.nickname + ' odadan ayrildi!',
+        'to' : content.room
+      }
+
+      io.to(content.room).emit('chat message', sysContent);
     });
   });
 }

@@ -161,7 +161,11 @@ export default function MainScreen() {
     if(createRoomName === ''){
       setIsAlertOpen(true);
     }else{
-      socket.emit('create room', createRoomName);
+      let _content = {
+        'room' : createRoomName,
+        'nickname' : nickname
+      }
+      socket.emit('create room', _content);
       setOpenCreateRoomModal(false);
     }
   };
@@ -184,8 +188,12 @@ export default function MainScreen() {
     }
   };
 
-  const handleRoomsDialogButton = (text) => {
-    socket.emit('join room', text);
+  const handleRoomsDialogButton = (roomName) => {
+    let content = {
+      'room' : roomName,
+      'nickname' : nickname 
+    }
+    socket.emit('join room', content);
     setOpenRoomsModal(false);
   }
 
@@ -289,7 +297,11 @@ const handleCreateRoomDialogEnter = (event) => {
   }
 
   const removeRoomOfUser = () => {
-    socket.emit('delete user from room', selectedChat);
+    let content = { 
+      'room' : selectedChat,
+      'nickname' : nickname
+    }
+    socket.emit('delete user from room', content);
 
     setSelectedChat('public');
   }
