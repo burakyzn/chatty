@@ -82,9 +82,17 @@ const addRoom = (roomName) => {
     rooms.push(roomName);
 }
 
-const getRooms = () => {
-  return rooms;
-}
+const getRoomList = (req, res, next) => {
+  let p_nickname = req.query['p_nickname'];
+  let user = users.find(user => user.nickname == p_nickname);
+  let resultRoom = [...rooms];
+
+  resultRoom = resultRoom.filter(function(value){ 
+    return (user.rooms.indexOf(value) == -1);
+  });
+
+  res.json({'result' : true,'roomList' : resultRoom});
+};
 
 module.exports = {
   setNickname,
@@ -97,5 +105,6 @@ module.exports = {
   getRoomsOfUser,
   addRoomToUser,
   addRoom,
-  getRooms
+  getRooms,
+  getRoomList
 };
