@@ -70,6 +70,20 @@ const getRoomsOfUser = socketID => {
   return user.rooms;
 }
 
+const removeRoomOfUser = (socketID, room) => {
+  users.find(user => user.socketID == socketID).rooms = users.find(user => user.socketID == socketID).rooms.filter(_room => _room != room);
+
+  var tmp = 0;
+  users.forEach(user => {
+    if(user.rooms.filter(x => x === room).length != 0){
+      tmp = 1;
+    }});
+
+  if(tmp = 1){
+    rooms = rooms.filter(x => x != room);
+  }
+}
+
 const addRoomToUser = (socketID, roomName) =>{
   var user = users.find(user => user.socketID == socketID);
   var otherUsers = users.filter(user => user.socketID != socketID);
@@ -101,6 +115,7 @@ module.exports = {
   getUser,
   getAllUsers,
   removeUser,
+  removeRoomOfUser,
   addUser,
   getRoomsOfUser,
   addRoomToUser,
