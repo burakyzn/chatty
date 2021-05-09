@@ -28,7 +28,7 @@ import Avatar from '@material-ui/core/Avatar';
 import axios from 'axios';
 import {socket} from '../index';
 import './main.css';
-import { SET_NICKNAME, SET_AVATAR_IMG } from '../core/apis.js';
+import { SET_NICKNAME, SET_AVATAR_IMG, GET_ROOM_LIST } from '../core/apis.js';
 import Grid from '@material-ui/core/Grid';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
@@ -134,12 +134,6 @@ export default function MainScreen() {
   }, []);
 
   React.useEffect(() => {
-    socket.on("room list", data => {
-      setRooms(data.roomList);
-    });
-  }, []);
-
-  React.useEffect(() => {
     socket.on("my room list", data => {
       setMyRooms(data.myRoomList);
     });
@@ -192,14 +186,27 @@ export default function MainScreen() {
 
   const handleRoomsDialogButton = (text) => {
     socket.emit('join room', text);
-    handleRoomsDialogClose();
+    setOpenRoomsModal(false);
   }
 
   const handleRoomsDialogClose = () => {
     setOpenRoomsModal(false);
   };
+
   const handleRoomsDialogOpen = () => {
-    setOpenRoomsModal(true);
+    axios(BASE_API + GET_ROOM_LIST, {
+      params : {
+        'p_nickname' : nickname
+      }
+    })
+    .then((result)=>{
+      if(result.data.result === true){
+        setRooms([...result.data.roomList]);
+        setOpenRoomsModal(true);
+      } else {
+        console.log('Room list error');
+      }
+    });
   };
 
   const handleAvatarDialogClose = () => {
@@ -454,7 +461,9 @@ const handleCreateRoomDialogEnter = (event) => {
           <List>
           {rooms.map((text, index) => (
             <ListItem>
-              <Button key={text} variant="contained" color="primary" component="span" style={{ marginRight: 10 }} onClick={ handleRoomsDialogButton(text) } >
+              <Button key={text} variant="contained" color="primary" component="span" style={{ marginRight: 10 }} onClick={()=> {
+                handleRoomsDialogButton(text);
+              }} >
                 +
               </Button>
               <ListItemText primary={text} />
