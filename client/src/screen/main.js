@@ -9,6 +9,7 @@ import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import Badge from "@material-ui/core/Badge";
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
@@ -141,6 +142,17 @@ export default function MainScreen() {
   
   React.useEffect(() => {
     socket.on("chat message", msg => {
+      // if(selectedChat !== msg.to){
+      //   console.log("girdi");
+      //   let content = {
+      //     [msg.to] :true
+      //   }
+      //   console.log(content);
+      //   setMsgAlerts(msgAlerts => [...msgAlerts, content]);
+      //   console.log(msgAlerts);
+      // }
+
+      //console.log(msgAlerts);
       setAllMessage(allMessage => [...allMessage, msg]);
     });
   }, []);
@@ -284,7 +296,7 @@ const handleCreateRoomDialogEnter = (event) => {
   }
 
   const sendMessageHandler = () => {
-    if(rooms.indexOf(selectedChat) === -1){
+    if(myRooms.indexOf(selectedChat) === -1){
       let content = {
         'to' : selectedChat,
         'message' : message
@@ -311,6 +323,38 @@ const handleCreateRoomDialogEnter = (event) => {
       messageRef.current.scrollIntoView({ behaviour: "smooth" });
     }
   }, [allMessage]);
+
+  const msgAlerts = (text) => {
+    let tmp = true;
+    allMessage.forEach(msg => {
+      console.log(msg);
+      if(msg.to === text){
+        if(selectedChat !== text && msg.read === false && msg.sender !== nickname){
+          console.log("girdi1");
+            tmp = false;
+        }else{
+          console.log("girdi2");
+        }
+      }
+    })
+    return(tmp);
+  }
+
+  const msgAlertsPrivate = (text) => {
+    let tmp = true;
+    allMessage.forEach(msg => {
+      console.log(msg);
+      if(msg.nickname === text){
+        if(selectedChat !== text && msg.read === false && msg.nickname !== nickname){
+          console.log("girdi1");
+            tmp = false;
+        }else{
+          console.log("girdi2");
+        }
+      }
+    })
+    return(tmp);
+  }
 
   return (
     <div className={classes.root}>
@@ -376,25 +420,122 @@ const handleCreateRoomDialogEnter = (event) => {
         </Button>
         <Divider />
         <List style={{ margin: 0, padding: 0 }}>
-          {['Genel Chat'].map((text, index) => (
-            <ListItem button key={text} onClick={()=>{ setSelectedChat('public') }}>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          {['Genel Chat'].map((text, index) => {
+            return(
+              <ListItem button key={text} onClick={()=>{ 
+                let tmp = [];
+                  allMessage.forEach(msg => {
+                    for (let i = 0; i < allMessage.length; i++){
+                      if(allMessage[i].to === 'public' && allMessage[i].read === false){
+                        tmp.push(allMessage[i]);
+                      }
+                    }
+
+                    for(let a = 0; a < tmp.length; a++){
+                      tmp[a].read = true;
+                    }
+                  })
+                  for (let i = 0; i < allMessage.length; i++){
+                    for(let a = 0; a < tmp.length; a++){
+                      if(allMessage[i] === tmp[a]){
+                        let _tmp = allMessage;
+                        _tmp[i].read = true;
+                        setAllMessage(_tmp);
+                      }
+                    }
+                  }
+
+                setSelectedChat('public') 
+                }}>
+                <Badge color="secondary" variant="dot" invisible={ msgAlerts('public') }>
+                  <ListItemText primary='Genel Chat' />
+                </Badge>
+              </ListItem>
+            )})}
         </List>
+        <Divider />
+        <Typography
+          component="span"
+          variant="subtitle2"
+          color="textPrimary"
+          align='center'
+          style={{ fontSize:20 }}
+        >
+          Odalar
+        </Typography>
         <List>
-          {[...myRooms].map((text, index) => (
-            <ListItem button key={text} onClick={()=>{ setSelectedChat(text) }}>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          {[...myRooms].map((text, index) => {
+            return(
+              <ListItem button key={text} onClick={()=>{ 
+                let tmp = [];
+                allMessage.forEach(msg => {
+                  for (let i = 0; i < allMessage.length; i++){
+                    if(allMessage[i].to === text && allMessage[i].read === false){
+                      tmp.push(allMessage[i]);
+                    }
+                  }
+
+                  for(let a = 0; a < tmp.length; a++){
+                    tmp[a].read = true;
+                  }
+                })
+                for (let i = 0; i < allMessage.length; i++){
+                  for(let a = 0; a < tmp.length; a++){
+                    if(allMessage[i] === tmp[a]){
+                      let _tmp = allMessage;
+                      _tmp[i].read = true;
+                      setAllMessage(_tmp);
+                    }
+                  }
+                }
+
+                setSelectedChat(text)
+                }}>
+                      <Badge color="secondary" variant="dot" invisible={ msgAlerts(text) }>
+                        <ListItemText primary={text} />
+                      </Badge>
+                    </ListItem>
+              )
+              
+            }
+          )}
         </List>
         <Divider />
         <List>
           {onlineUsers.map((item, index) => (
-            <ListItem button key={item.socketID} onClick={() => {((item.nickname !== nickname) && setSelectedChat(item.nickname))}}>
+            <ListItem button key={item.socketID} onClick={() => {
+              if(item.nickname !== nickname){
+              let tmp = [];
+                allMessage.forEach(msg => {
+                  for (let i = 0; i < allMessage.length; i++){
+                    if(allMessage[i].nickname === item.nickname && allMessage[i].read === false){
+                      tmp.push(allMessage[i]);
+                    }
+                  }
+
+                  for(let a = 0; a < tmp.length; a++){
+                    tmp[a].read = true;
+                  }
+                })
+                for (let i = 0; i < allMessage.length; i++){
+                  for(let a = 0; a < tmp.length; a++){
+                    if(allMessage[i] === tmp[a]){
+                      let _tmp = allMessage;
+                      _tmp[i].read = true;
+                      setAllMessage(_tmp);
+                    }
+                  }
+                }
+
+              
+                setSelectedChat(item.nickname)
+              }
+              }}>
+
+              <Badge color="secondary" variant="dot" invisible={ msgAlertsPrivate(item.nickname) }>
               <Icon className="fas fa-circle" style={{ color: green[500] }} />
-              <ListItemText primary={item.nickname} style={{marginLeft : 10}}/>
+                <ListItemText primary={item.nickname} style={{marginLeft : 10}} />
+              </Badge>
             </ListItem>
           ))}
         </List>
@@ -530,6 +671,24 @@ const handleCreateRoomDialogEnter = (event) => {
                 if(content.system === true){
                   return("");
                 }else{
+                  let tmp = [];
+                  allMessage.forEach(msg => {
+                    for (let i = 0; i < allMessage.length; i++){
+                      if(allMessage[i].to === selectedChat && allMessage[i].read === false){
+                        tmp.push(allMessage[i]);
+                      }
+                    }
+                  })
+                  for (let i = 0; i < allMessage.length; i++){
+                    for(let a = 0; a < tmp.length; a++){
+                      if(allMessage[i] === tmp[a]){
+                        let _tmp = allMessage;
+                        _tmp[i].read = true;
+                        setAllMessage(_tmp);
+                      }
+                    }
+                  }
+
                   return(
                     <ListItemAvatar>
                       <Avatar alt={ content.nickname } src={ content.avatar } />
