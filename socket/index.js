@@ -52,9 +52,9 @@ const listeners = io => {
           'avatar' : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
           'system' : false,
           'msg' : msgContent.message,
-          'to' : msgContent.to
+          'to' : msgContent.to,
+          'read' : false,
         }
-        
         io.emit('chat message', content);
       });
 
@@ -66,9 +66,9 @@ const listeners = io => {
           'avatar' : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
           'system' : false,
           'msg' : msgContent.message,
-          'to' : msgContent.to
+          'to' : msgContent.to,
+          'read' : false
         }
-        
         io.to(msgContent.to).emit('chat message', content);
       });
     });
@@ -87,7 +87,8 @@ const listeners = io => {
         'color' : '#000',
         'system' : true,
         'msg' : content.nickname + ', ' + content.room + ' odasini kurdu.',
-        'to' : content.room
+        'to' : content.room,
+        'read' : false
       }
 
       io.to(content.room).emit('chat message', sysContent);
@@ -106,7 +107,8 @@ const listeners = io => {
         'color' : '#000',
         'system' : true,
         'msg' : content.nickname + ' odaya katildi.',
-        'to' : content.room
+        'to' : content.room,
+        'read' : false
       }
 
       io.to(content.room).emit('chat message', sysContent);
@@ -125,7 +127,8 @@ const listeners = io => {
         'color' : '#000',
         'system' : true,
         'msg' : content.nickname + ' odadan ayrildi!',
-        'to' : content.room
+        'to' : content.room,
+        'read' : false
       }
 
       io.to(content.room).emit('chat message', sysContent);
