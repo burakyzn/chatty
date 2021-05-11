@@ -1,35 +1,47 @@
 import React from 'react';
 import clsx from 'clsx';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import { green } from '@material-ui/core/colors';
-import Icon from '@material-ui/core/Icon';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Typography from '@material-ui/core/Typography';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import Avatar from '@material-ui/core/Avatar';
+import {
+  Drawer,
+  CssBaseline,
+  AppBar,
+  Toolbar,
+  List,
+  Divider,
+  IconButton,
+  Badge,
+  Icon,
+  ListItem,
+  ListItemText,
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Typography,
+  ListItemAvatar,
+  Avatar,
+  colors,
+  Grid
+} from '@material-ui/core';
+import {
+  Menu,
+  ChevronLeft,
+  ChevronRight
+} from '@material-ui/icons';
+import { 
+  makeStyles, 
+  useTheme 
+} from '@material-ui/core/styles';
+import { 
+  SET_NICKNAME, 
+  SET_AVATAR_IMG, 
+  GET_ROOM_LIST 
+} from '../core/apis.js';
+import './main.css';
 import axios from 'axios';
 import {socket} from '../index';
-import './main.css';
-import { SET_NICKNAME, SET_AVATAR_IMG, GET_ROOM_LIST } from '../core/apis.js';
-import Grid from '@material-ui/core/Grid';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
@@ -161,7 +173,11 @@ export default function MainScreen() {
     if(createRoomName === ''){
       setIsAlertOpen(true);
     }else{
-      socket.emit('create room', createRoomName);
+      let _content = {
+        'room' : createRoomName,
+        'nickname' : nickname
+      }
+      socket.emit('create room', _content);
       setOpenCreateRoomModal(false);
     }
   };
@@ -184,8 +200,12 @@ export default function MainScreen() {
     }
   };
 
-  const handleRoomsDialogButton = (text) => {
-    socket.emit('join room', text);
+  const handleRoomsDialogButton = (roomName) => {
+    let content = {
+      'room' : roomName,
+      'nickname' : nickname 
+    }
+    socket.emit('join room', content);
     setOpenRoomsModal(false);
   }
 
@@ -276,7 +296,7 @@ const handleCreateRoomDialogEnter = (event) => {
   }
 
   const sendMessageHandler = () => {
-    if(rooms.indexOf(selectedChat) === -1){
+    if(myRooms.indexOf(selectedChat) === -1){
       let content = {
         'to' : selectedChat,
         'message' : message
@@ -288,11 +308,45 @@ const handleCreateRoomDialogEnter = (event) => {
     }
   }
 
+  const removeRoomOfUser = () => {
+    let content = { 
+      'room' : selectedChat,
+      'nickname' : nickname
+    }
+    socket.emit('delete user from room', content);
+
+    setSelectedChat('public');
+  }
+
   React.useEffect(() => {
     if (messageRef.current) {
       messageRef.current.scrollIntoView({ behaviour: "smooth" });
     }
   }, [allMessage]);
+
+  const msgAlerts = (text) => {
+    let tmp = true;
+    allMessage.forEach(msg => {
+      if(msg.to === text){
+        if(selectedChat !== text && msg.read === false && msg.sender !== nickname){
+          tmp = false;
+        }
+      }
+    })
+    return(tmp);
+  }
+
+  const msgAlertsPrivate = (text) => {
+    let tmp = true;
+    allMessage.forEach(msg => {
+      if(msg.nickname === text){
+        if(selectedChat !== text && msg.read === false && msg.nickname !== nickname && msg.to === nickname){
+          tmp = false;
+        }
+      }
+    })
+    return(tmp);
+  }
 
   return (
     <div className={classes.root}>
@@ -311,11 +365,20 @@ const handleCreateRoomDialogEnter = (event) => {
             edge="start"
             className={clsx(classes.menuButton, openDrawer && classes.hide)}
           >
-            <MenuIcon />
+            <Menu />
           </IconButton>
-          <Typography variant="h6" noWrap>
-            {selectedChat === 'public' ? 'Genel' : selectedChat}
-          </Typography>
+          <Grid container justify = "flex-start">
+            <Typography variant="h6" noWrap>
+              {selectedChat === 'public' ? 'Genel Chat' : selectedChat}
+            </Typography>
+          </Grid>
+          {selectedChat === 'public' ? null : (
+            <Grid container justify = "flex-end">
+              <Button variant="contained" color="secondary" component="span" style={{ margin: 10 }} onClick={ removeRoomOfUser }>
+                Odadan Ayrıl
+              </Button>
+            </Grid>)
+          }
         </Toolbar>
       </AppBar>
       <Drawer
@@ -329,7 +392,7 @@ const handleCreateRoomDialogEnter = (event) => {
       >
         <div className={classes.drawerHeader}>
           <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            {theme.direction === 'ltr' ? <ChevronLeft /> : <ChevronRight />}
           </IconButton>
         </div>
         <Divider />
@@ -348,19 +411,123 @@ const handleCreateRoomDialogEnter = (event) => {
           Oda Oluştur
         </Button>
         <Divider />
+        <List style={{ margin: 0, padding: 0 }}>
+          {['Genel Chat'].map((text, index) => {
+            return(
+              <ListItem button key={text} onClick={()=>{ 
+                let tmp = [];
+                  allMessage.forEach(msg => {
+                    for (let i = 0; i < allMessage.length; i++){
+                      if(allMessage[i].to === 'public' && allMessage[i].read === false){
+                        tmp.push(allMessage[i]);
+                      }
+                    }
+
+                    for(let a = 0; a < tmp.length; a++){
+                      tmp[a].read = true;
+                    }
+                  })
+                  for (let i = 0; i < allMessage.length; i++){
+                    for(let a = 0; a < tmp.length; a++){
+                      if(allMessage[i] === tmp[a]){
+                        let _tmp = allMessage;
+                        _tmp[i].read = true;
+                        setAllMessage(_tmp);
+                      }
+                    }
+                  }
+
+                setSelectedChat('public') 
+                }}>
+                <Badge color="secondary" variant="dot" invisible={ msgAlerts('public') }>
+                  <ListItemText primary='Genel Chat' />
+                </Badge>
+              </ListItem>
+            )})}
+        </List>
+        <Divider />
+        <Typography
+          component="span"
+          variant="subtitle2"
+          color="textPrimary"
+          align='center'
+          style={{ fontSize:20 }}
+        >
+          Odalar
+        </Typography>
         <List>
-          {['Genel Chat', ...myRooms].map((text, index) => (
-            <ListItem button key={text} onClick={()=>{(text === 'GenelChat' && setSelectedChat('public')) || setSelectedChat(text)}}>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          {[...myRooms].map((text, index) => {
+            return(
+              <ListItem button key={text} onClick={()=>{ 
+                let tmp = [];
+                allMessage.forEach(msg => {
+                  for (let i = 0; i < allMessage.length; i++){
+                    if(allMessage[i].to === text && allMessage[i].read === false){
+                      tmp.push(allMessage[i]);
+                    }
+                  }
+
+                  for(let a = 0; a < tmp.length; a++){
+                    tmp[a].read = true;
+                  }
+                })
+                for (let i = 0; i < allMessage.length; i++){
+                  for(let a = 0; a < tmp.length; a++){
+                    if(allMessage[i] === tmp[a]){
+                      let _tmp = allMessage;
+                      _tmp[i].read = true;
+                      setAllMessage(_tmp);
+                    }
+                  }
+                }
+
+                setSelectedChat(text)
+                }}>
+                      <Badge color="secondary" variant="dot" invisible={ msgAlerts(text) }>
+                        <ListItemText primary={text} />
+                      </Badge>
+                    </ListItem>
+              )
+              
+            }
+          )}
         </List>
         <Divider />
         <List>
           {onlineUsers.map((item, index) => (
-            <ListItem button key={item.socketID} onClick={() => {((item.nickname !== nickname) && setSelectedChat(item.nickname))}}>
-              <Icon className="fas fa-circle" style={{ color: green[500] }} />
-              <ListItemText primary={item.nickname} style={{marginLeft : 10}}/>
+            <ListItem button key={item.socketID} onClick={() => {
+              if(item.nickname !== nickname){
+              let tmp = [];
+                allMessage.forEach(msg => {
+                  for (let i = 0; i < allMessage.length; i++){
+                    if(allMessage[i].nickname === item.nickname && allMessage[i].read === false && allMessage[i].to === nickname){
+                      tmp.push(allMessage[i]);
+                    }
+                  }
+
+                  for(let a = 0; a < tmp.length; a++){
+                    tmp[a].read = true;
+                  }
+                })
+                for (let i = 0; i < allMessage.length; i++){
+                  for(let a = 0; a < tmp.length; a++){
+                    if(allMessage[i] === tmp[a]){
+                      let _tmp = allMessage;
+                      _tmp[i].read = true;
+                      setAllMessage(_tmp);
+                    }
+                  }
+                }
+
+              
+                setSelectedChat(item.nickname)
+              }
+              }}>
+
+              <Badge color="secondary" variant="dot" invisible={ msgAlertsPrivate(item.nickname) }>
+              <Icon className="fas fa-circle" style={{'color': colors.green[500] }} />
+                <ListItemText primary={item.nickname} style={{marginLeft : 10}} />
+              </Badge>
             </ListItem>
           ))}
         </List>
@@ -496,6 +663,24 @@ const handleCreateRoomDialogEnter = (event) => {
                 if(content.system === true){
                   return("");
                 }else{
+                  let tmp = [];
+                  allMessage.forEach(msg => {
+                    for (let i = 0; i < allMessage.length; i++){
+                      if(allMessage[i].to === selectedChat && allMessage[i].read === false){
+                        tmp.push(allMessage[i]);
+                      }
+                    }
+                  })
+                  for (let i = 0; i < allMessage.length; i++){
+                    for(let a = 0; a < tmp.length; a++){
+                      if(allMessage[i] === tmp[a]){
+                        let _tmp = allMessage;
+                        _tmp[i].read = true;
+                        setAllMessage(_tmp);
+                      }
+                    }
+                  }
+
                   return(
                     <ListItemAvatar>
                       <Avatar alt={ content.nickname } src={ content.avatar } />
@@ -517,7 +702,6 @@ const handleCreateRoomDialogEnter = (event) => {
                     >
                       {content.msg}
                     </Typography>
-                    {/* {" — Wish I could come, but I'm out of town this…"} */}
                   </React.Fragment>
                 }
                />
