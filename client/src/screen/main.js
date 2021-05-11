@@ -153,17 +153,6 @@ export default function MainScreen() {
   
   React.useEffect(() => {
     socket.on("chat message", msg => {
-      // if(selectedChat !== msg.to){
-      //   console.log("girdi");
-      //   let content = {
-      //     [msg.to] :true
-      //   }
-      //   console.log(content);
-      //   setMsgAlerts(msgAlerts => [...msgAlerts, content]);
-      //   console.log(msgAlerts);
-      // }
-
-      //console.log(msgAlerts);
       setAllMessage(allMessage => [...allMessage, msg]);
     });
   }, []);
@@ -338,13 +327,9 @@ const handleCreateRoomDialogEnter = (event) => {
   const msgAlerts = (text) => {
     let tmp = true;
     allMessage.forEach(msg => {
-      console.log(msg);
       if(msg.to === text){
         if(selectedChat !== text && msg.read === false && msg.sender !== nickname){
-          console.log("girdi1");
-            tmp = false;
-        }else{
-          console.log("girdi2");
+          tmp = false;
         }
       }
     })
@@ -354,13 +339,9 @@ const handleCreateRoomDialogEnter = (event) => {
   const msgAlertsPrivate = (text) => {
     let tmp = true;
     allMessage.forEach(msg => {
-      console.log(msg);
       if(msg.nickname === text){
-        if(selectedChat !== text && msg.read === false && msg.nickname !== nickname){
-          console.log("girdi1");
-            tmp = false;
-        }else{
-          console.log("girdi2");
+        if(selectedChat !== text && msg.read === false && msg.nickname !== nickname && msg.to === nickname){
+          tmp = false;
         }
       }
     })
@@ -519,7 +500,7 @@ const handleCreateRoomDialogEnter = (event) => {
               let tmp = [];
                 allMessage.forEach(msg => {
                   for (let i = 0; i < allMessage.length; i++){
-                    if(allMessage[i].nickname === item.nickname && allMessage[i].read === false){
+                    if(allMessage[i].nickname === item.nickname && allMessage[i].read === false && allMessage[i].to === nickname){
                       tmp.push(allMessage[i]);
                     }
                   }
@@ -721,7 +702,6 @@ const handleCreateRoomDialogEnter = (event) => {
                     >
                       {content.msg}
                     </Typography>
-                    {/* {" — Wish I could come, but I'm out of town this…"} */}
                   </React.Fragment>
                 }
                />
