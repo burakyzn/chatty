@@ -1,36 +1,47 @@
 import React from 'react';
 import clsx from 'clsx';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
-import Badge from "@material-ui/core/Badge";
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import { green } from '@material-ui/core/colors';
-import Icon from '@material-ui/core/Icon';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Typography from '@material-ui/core/Typography';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import Avatar from '@material-ui/core/Avatar';
+import {
+  Drawer,
+  CssBaseline,
+  AppBar,
+  Toolbar,
+  List,
+  Divider,
+  IconButton,
+  Badge,
+  Icon,
+  ListItem,
+  ListItemText,
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Typography,
+  ListItemAvatar,
+  Avatar,
+  colors,
+  Grid
+} from '@material-ui/core';
+import {
+  Menu,
+  ChevronLeft,
+  ChevronRight
+} from '@material-ui/icons';
+import { 
+  makeStyles, 
+  useTheme 
+} from '@material-ui/core/styles';
+import { 
+  SET_NICKNAME, 
+  SET_AVATAR_IMG, 
+  GET_ROOM_LIST 
+} from '../core/apis.js';
+import './main.css';
 import axios from 'axios';
 import {socket} from '../index';
-import './main.css';
-import { SET_NICKNAME, SET_AVATAR_IMG, GET_ROOM_LIST } from '../core/apis.js';
-import Grid from '@material-ui/core/Grid';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
@@ -373,7 +384,7 @@ const handleCreateRoomDialogEnter = (event) => {
             edge="start"
             className={clsx(classes.menuButton, openDrawer && classes.hide)}
           >
-            <MenuIcon />
+            <Menu />
           </IconButton>
           <Grid container justify = "flex-start">
             <Typography variant="h6" noWrap>
@@ -400,7 +411,7 @@ const handleCreateRoomDialogEnter = (event) => {
       >
         <div className={classes.drawerHeader}>
           <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            {theme.direction === 'ltr' ? <ChevronLeft /> : <ChevronRight />}
           </IconButton>
         </div>
         <Divider />
@@ -533,7 +544,7 @@ const handleCreateRoomDialogEnter = (event) => {
               }}>
 
               <Badge color="secondary" variant="dot" invisible={ msgAlertsPrivate(item.nickname) }>
-              <Icon className="fas fa-circle" style={{ color: green[500] }} />
+              <Icon className="fas fa-circle" style={{'color': colors.green[500] }} />
                 <ListItemText primary={item.nickname} style={{marginLeft : 10}} />
               </Badge>
             </ListItem>
