@@ -1,5 +1,6 @@
 const path = require("path");
 const multer = require("multer");
+const db = require('../core/db');
 
 var nicknames = [];
 var avatars = [];
@@ -37,11 +38,22 @@ const setAvatar = (req, res, next) => {
  });
 };
 
-const setNickname = (req, res, next) => {
-  var p_nickname = req.query['p_nickname'];
-  if(nicknames.indexOf(p_nickname) == -1){
-    console.log("Yeni kullanici kaydi yapildi. Kullanici adi : " + p_nickname);
-    nicknames.push(p_nickname);
+const setNickname = async (req, res, next) => {
+  var nickname = req.query['p_nickname'];
+  const usersRef = db.collection('users');
+  const snapshot = await usersRef.where('nickname', '==', nickname).get();
+  if (snapshot.empty) {
+    db.collection('users').doc(nickname).set({
+      'nickname': nickname,
+      'first'   : 'adi',
+      'last'    : 'soyadi',
+      'born'    : 1997,
+      'friends' : []
+    });
+
+    console.log("Yeni kullanici kaydi yapildi. Kullanici adi : " + nickname);
+
+    nicknames.push(nickname);
     res.json({result : true});
   } else {
     res.json({result : false});
@@ -55,6 +67,11 @@ const getAllUsers = () => {
 const getUser = (socketID) => {
   var user = users.find(user => user.socketID == socketID);
   return user;
+}
+
+const getUserSocketID = (nickname) => {
+  var user = users.find(user => user.nickname == nickname);
+  return user.socketID;
 }
 
 const removeUser = (socketID) => {
@@ -120,5 +137,7 @@ module.exports = {
   getRoomsOfUser,
   addRoomToUser,
   addRoom,
-  getRoomList
+  getRoomList,
+  nicknames,
+  getUserSocketID
 };
