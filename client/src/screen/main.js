@@ -37,7 +37,9 @@ import {
 import { 
   SET_NICKNAME, 
   SET_AVATAR_IMG, 
-  GET_ROOM_LIST 
+  GET_ROOM_LIST,
+  GET_PUBLIC_MESSAGE_LIST,
+  GET_PRIVATE_MESSAGE_LIST
 } from '../core/apis.js';
 import './main.css';
 import axios from 'axios';
@@ -124,6 +126,7 @@ export default function MainScreen() {
   const [rooms, setRooms] = React.useState([]);
   const [myRooms, setMyRooms] = React.useState([]);
   const [createRoomName, setCreateRoomName] = React.useState('');
+  const [getPrivateMessage, setGetPrivateMessage] = React.useState([]);
   const messageRef = React.useRef(null);
 
   const formStyle = {
@@ -153,7 +156,16 @@ export default function MainScreen() {
   
   React.useEffect(() => {
     socket.on("chat message", msg => {
+      console.log(msg);
       setAllMessage(allMessage => [...allMessage, msg]);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    axios(BASE_API + GET_PUBLIC_MESSAGE_LIST)
+    .then((result)=>{
+      if(result.data.messageList.length > 0)
+        setAllMessage(result.data.messageList);
     });
   }, []);
 
@@ -296,7 +308,7 @@ const handleCreateRoomDialogEnter = (event) => {
   }
 
   const sendMessageHandler = () => {
-    if(myRooms.indexOf(selectedChat) === -1){
+    if(selectedChat === 'public'){
       let content = {
         'to' : selectedChat,
         'message' : message
@@ -346,6 +358,21 @@ const handleCreateRoomDialogEnter = (event) => {
       }
     })
     return(tmp);
+  }
+
+  const getPreviousPrivateMessages = (to) => {
+    axios(BASE_API + GET_PRIVATE_MESSAGE_LIST,{
+      params : {
+        'p_from'  : nickname,
+        'p_to'    : to
+      }
+    })
+    .then((result)=>{
+      if(result.data.messageList.length > 0 && (getPrivateMessage.indexOf(result.data.messageId) === -1)){
+        setGetPrivateMessage(getPrivateMessage => [...getPrivateMessage,result.data.messageId]);
+        setAllMessage(allMessage => [...allMessage, ...(result.data.messageList)]);
+      }
+    });
   }
 
   return (
@@ -521,6 +548,7 @@ const handleCreateRoomDialogEnter = (event) => {
 
               
                 setSelectedChat(item.nickname)
+                getPreviousPrivateMessages(item.nickname);
               }
               }}>
 
