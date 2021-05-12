@@ -1,3 +1,6 @@
+#firebase
+core/serviceAccountKey.json
+
 # Logs
 logs
 *.log
