@@ -1,5 +1,6 @@
 
 const userController = require('../controllers/user'); 
+const messageController = require('../controllers/message')
 
 const listeners = io => {
   io.on('connection', (socket) => {
@@ -44,7 +45,7 @@ const listeners = io => {
         io.emit('onlineusers', {"userList" : [...users]});
       });
       
-      socket.on('chat message', (msgContent) => {
+      socket.on('chat message', async (msgContent) => {
         var user = userController.getUser(socket.id);
         var content = {
           'nickname' : user.nickname,
@@ -55,6 +56,11 @@ const listeners = io => {
           'to' : msgContent.to,
           'read' : false,
         }
+        
+        messageController.addPublicMessage(user.nickname, user.color, user.avatar, 
+          false, msgContent.message, msgContent.to);
+
+        console.log("genel mesaj");
         io.emit('chat message', content);
       });
 
@@ -69,7 +75,19 @@ const listeners = io => {
           'to' : msgContent.to,
           'read' : false
         }
-        io.to(msgContent.to).emit('chat message', content);
+        
+        if(userController.nicknames.indexOf(msgContent.to) === -1){
+          messageController.addRoomMessage(user.nickname, user.color, user.avatar, 
+            false, msgContent.message, msgContent.to, false);
+
+          io.to(msgContent.to).emit('chat message', content);
+        } else {
+          messageController.addPrivateMessage(user.nickname, user.color, user.avatar, 
+            false, msgContent.message, msgContent.to, false);
+          
+          io.to(userController.getUserSocketID(msgContent.to)).emit('chat message', content);
+          io.to(socket.id).emit('chat message', content);
+        }
       });
     });
 
