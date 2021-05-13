@@ -39,7 +39,8 @@ import {
   SET_AVATAR_IMG, 
   GET_ROOM_LIST,
   GET_PUBLIC_MESSAGE_LIST,
-  GET_PRIVATE_MESSAGE_LIST
+  GET_PRIVATE_MESSAGE_LIST,
+  GET_ROOM_MESSAGE_LIST
 } from '../core/apis.js';
 import './main.css';
 import axios from 'axios';
@@ -156,7 +157,6 @@ export default function MainScreen() {
   
   React.useEffect(() => {
     socket.on("chat message", msg => {
-      console.log(msg);
       setAllMessage(allMessage => [...allMessage, msg]);
     });
   }, []);
@@ -375,6 +375,21 @@ const handleCreateRoomDialogEnter = (event) => {
     });
   }
 
+  const getPreviousRoomMessage = (room_name) => {
+    console.log(room_name);
+    axios(BASE_API + GET_ROOM_MESSAGE_LIST,{
+      params : {
+        'p_room_name'  : room_name
+      }
+    })
+    .then((result)=>{
+      if(result.data.messageList.length > 0 && (getPrivateMessage.indexOf(result.data.messageId) === -1)){
+        setGetPrivateMessage(getPrivateMessage => [...getPrivateMessage,result.data.messageId]);
+        setAllMessage(allMessage => [...allMessage, ...(result.data.messageList)]);
+      }
+    });
+  }
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -509,6 +524,7 @@ const handleCreateRoomDialogEnter = (event) => {
                 }
 
                 setSelectedChat(text)
+                getPreviousRoomMessage(text);
                 }}>
                       <Badge color="secondary" variant="dot" invisible={ msgAlerts(text) }>
                         <ListItemText primary={text} />
