@@ -60,7 +60,6 @@ const listeners = io => {
         messageController.addPublicMessage(user.nickname, user.color, user.avatar, 
           false, msgContent.message, msgContent.to);
 
-        console.log("genel mesaj");
         io.emit('chat message', content);
       });
 
@@ -76,7 +75,7 @@ const listeners = io => {
           'read' : false
         }
         
-        if(userController.nicknames.indexOf(msgContent.to) === -1){
+        if(!userController.isUser(msgContent.to)){
           messageController.addRoomMessage(user.nickname, user.color, user.avatar, 
             false, msgContent.message, msgContent.to, false);
 

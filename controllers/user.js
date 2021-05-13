@@ -4,7 +4,6 @@ const db = require('../core/db');
 const roomMessagesRef = db.collection('roomMessages');
 const userRef = db.collection('users');
 
-var nicknames = [];
 var avatars = [];
 var users = [];
 
@@ -53,8 +52,6 @@ const setNickname = async (req, res, next) => {
     });
 
     console.log("Yeni kullanici kaydi yapildi. Kullanici adi : " + nickname);
-
-    nicknames.push(nickname);
     res.json({result : true});
   } else {
     res.json({result : false});
@@ -156,6 +153,14 @@ const getRoomList =  async (req, res, next) => {
   res.json({'result' : true,'roomList' : room_list});
 };
 
+const isUser = async (client) => {
+  let _doc = await userRef.doc(client).get();
+  if (_doc.exists) 
+    return true;
+  else 
+    return false;
+}
+
 module.exports = {
   setNickname,
   setAvatar,
@@ -169,6 +174,6 @@ module.exports = {
   addRoomToUser,
   addRoom,
   getRoomList,
-  nicknames,
-  getUserSocketID
+  getUserSocketID,
+  isUser
 };
