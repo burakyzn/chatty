@@ -376,7 +376,6 @@ const handleCreateRoomDialogEnter = (event) => {
   }
 
   const getPreviousRoomMessage = (room_name) => {
-    console.log(room_name);
     axios(BASE_API + GET_ROOM_MESSAGE_LIST,{
       params : {
         'p_room_name'  : room_name
