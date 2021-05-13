@@ -67,13 +67,6 @@ const addPublicMessage = async (nickname, color, avatar, system, msg, to) => {
 }
 
 const addRoomMessage = async (nickname, color, avatar, system, msg, to) => {
-  let _doc = await roomMessagesRef.doc(to).get();
-  if (!_doc.exists) {
-    await roomMessagesRef.doc(to).set({
-      messageList: []
-    });
-  } 
-
   try {
     await db.runTransaction(async (t) => {
       let _doc = await t.get(roomMessagesRef.doc(to));

@@ -1,22 +1,23 @@
 const path = require("path");
 const multer = require("multer");
 const db = require('../core/db');
+const roomMessagesRef = db.collection('roomMessages');
+const userRef = db.collection('users');
 
 var nicknames = [];
 var avatars = [];
 var users = [];
-var rooms = [];
 
 const storage = multer.diskStorage({
-   destination: "./uploads/",
-   filename: function(req, file, cb){
-      cb(null,"IMAGE-" + Date.now() + path.extname(file.originalname));
-   }
+  destination: "./uploads/",
+  filename: function(req, file, cb){
+    cb(null,"IMAGE-" + Date.now() + path.extname(file.originalname));
+  }
 });
 
 const upload = multer({
-   storage: storage,
-   limits:{fileSize: 1000000},
+  storage: storage,
+  limits:{fileSize: 1000000},
 }).single("avatar");
 
 const setAvatar = (req, res, next) => {
@@ -48,7 +49,7 @@ const setNickname = async (req, res, next) => {
       'first'   : 'adi',
       'last'    : 'soyadi',
       'born'    : 1997,
-      'friends' : []
+      'rooms' : []
     });
 
     console.log("Yeni kullanici kaydi yapildi. Kullanici adi : " + nickname);
@@ -82,47 +83,77 @@ const addUser = (user) => {
   users.push(user);
 } 
 
-const getRoomsOfUser = socketID => {
-  var user = users.find(user => user.socketID == socketID);
-  return user.rooms;
+// users collection altindaki userin oda bilgilerini getirir.
+const getRoomsOfUser = async (socketID) => {
+  let _user_doc = await userRef.doc(getUser(socketID).nickname).get();
+  let _room_list = _user_doc.data().rooms;
+
+  return _room_list;
 }
 
-const removeRoomOfUser = (socketID, room) => {
-  users.find(user => user.socketID == socketID).rooms = users.find(user => user.socketID == socketID).rooms.filter(_room => _room != room);
+// users collection altindaki userin oda listesinden iletilen odayi cikarir
+// odada hic kullanici kalmazsa odanin butun mesajlari silinir
+const removeRoomOfUser = async (socketID, room) => {
+  let _doc = await userRef.doc(getUser(socketID).nickname).get();
+  let _room_list = _doc.data().rooms;
 
-  var tmp = 0;
-  users.forEach(user => {
-    if(user.rooms.filter(x => x === room).length != 0){
-      tmp = 1;
-    }});
-
-  if(tmp === 0){
-    rooms = rooms.filter(x => x != room);
-  }
-}
-
-const addRoomToUser = (socketID, roomName) =>{
-  var user = users.find(user => user.socketID == socketID);
-  var otherUsers = users.filter(user => user.socketID != socketID);
-  user.rooms.push(roomName);
-  otherUsers.push(user);
-}
-
-const addRoom = (roomName) => {
-  if(rooms.indexOf(roomName) == -1)
-    rooms.push(roomName);
-}
-
-const getRoomList = (req, res, next) => {
-  let p_nickname = req.query['p_nickname'];
-  let user = users.find(user => user.nickname == p_nickname);
-  let resultRoom = [...rooms];
-
-  resultRoom = resultRoom.filter(function(value){ 
-    return (user.rooms.indexOf(value) == -1);
+  _room_list = _room_list.filter(function(value){ 
+    return (value !== room);
   });
 
-  res.json({'result' : true,'roomList' : resultRoom});
+  await userRef.doc(getUser(socketID).nickname).update({
+    'rooms': [...(_room_list)]
+  });
+
+  // eger odada kimse kalmadiysa odanin mesajlarini komple silecek
+  let _snapshot = await userRef.where("rooms", "array-contains", room).get();
+  if (_snapshot.empty) {
+    await roomMessagesRef.doc(room).delete();
+  } 
+}
+
+// firestore users collection altinda kullaniciya oda ismi ekleniyor.
+const addRoomToUser = async (socketID, roomName) =>{
+  var user = users.find(user => user.socketID == socketID);
+  let _doc = await userRef.doc(user.nickname).get();
+  await userRef.doc(user.nickname).update({
+    'rooms': [...(_doc.data().rooms), roomName]
+  });
+}
+
+// roomMessage collectioni altina oda ekleniyor.
+const addRoom = async (roomName) => {
+  let _doc = await roomMessagesRef.doc(roomName).get();
+  if (!_doc.exists) {
+    await roomMessagesRef.doc(roomName).set({
+      messageList: []
+    });
+  } 
+}
+
+// tum oda listesinden gonderilen kullanicinin oda listesini cikarip katilanabilecek odalari filtreler.
+const getRoomList =  async (req, res, next) => {
+  let p_nickname = req.query['p_nickname'];
+  let user = users.find(user => user.nickname == p_nickname);
+  
+  let room_list = [];
+
+  // tum oda isimleri cekiliyor.
+  let _doc_list = await roomMessagesRef.get();
+  _doc_list.forEach(doc => {
+    room_list.push(doc.id);
+  });
+
+  // kullanici oda isimleri cekiliyor.
+  let _user_doc = await userRef.doc(user.nickname).get();
+  let _user_room_list = _user_doc.data().rooms;
+
+  // filtreleniyor.
+  room_list = room_list.filter(function(value){ 
+    return (_user_room_list.indexOf(value) == -1);
+  });
+
+  res.json({'result' : true,'roomList' : room_list});
 };
 
 module.exports = {

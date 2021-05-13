@@ -91,11 +91,13 @@ const listeners = io => {
       });
     });
 
-    socket.on('create room', (content) => {
+    socket.on('create room', async (content) => {
       socket.join(content.room);
-      userController.addRoomToUser(socket.id, content.room);
-      userController.addRoom(content.room);
-      let rooms = userController.getRoomsOfUser(socket.id);
+
+      await userController.addRoom(content.room);
+      await userController.addRoomToUser(socket.id, content.room);
+      let rooms = await userController.getRoomsOfUser(socket.id);
+
       io.to(socket.id).emit('my room list', {
         "myRoomList": [...rooms]
       });
@@ -112,10 +114,10 @@ const listeners = io => {
       io.to(content.room).emit('chat message', sysContent);
     });
 
-    socket.on('join room', (content) => {
+    socket.on('join room', async (content) => {
       socket.join(content.room);
-      userController.addRoomToUser(socket.id, content.room);
-      let rooms = userController.getRoomsOfUser(socket.id);
+      await userController.addRoomToUser(socket.id, content.room);
+      let rooms = await userController.getRoomsOfUser(socket.id);
       io.to(socket.id).emit('my room list', {
         "myRoomList": [...rooms]
       });
@@ -132,9 +134,9 @@ const listeners = io => {
       io.to(content.room).emit('chat message', sysContent);
     });
 
-    socket.on('delete user from room', (content) => {
-      userController.removeRoomOfUser(socket.id, content.room);
-      let rooms = userController.getRoomsOfUser(socket.id);
+    socket.on('delete user from room', async (content) => {
+      await userController.removeRoomOfUser(socket.id, content.room);
+      let rooms = await userController.getRoomsOfUser(socket.id);
       io.to(socket.id).emit('my room list', {
         "myRoomList": [...rooms]
       });
