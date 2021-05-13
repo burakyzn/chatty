@@ -21,9 +21,18 @@ const getPrivateMessageList = async (req,res,next) => {
 
   let _doc = await privateMessagesRef.doc(_doc_name).get();
   if (!_doc.exists) {
-    res.json({messageList : []});
+    res.json({messageId : '', messageList : []});
   } else {
     res.json({messageId : _doc_name, messageList : _doc.data().messageList});
+  }
+}
+
+const getRoomMessageList = async (req,res,next) => {
+  let _doc = await roomMessagesRef.doc(req.query['p_room_name']).get();
+  if (!_doc.exists) {
+    res.json({roomId : '', messageList : []});
+  } else {
+    res.json({roomId : req.query['p_room_name'], messageList : _doc.data().messageList});
   }
 }
 
@@ -120,6 +129,7 @@ const addPrivateMessage = async (nickname, color, avatar, system, msg, to) => {
 module.exports = {
   getPublicMessageList,
   getPrivateMessageList,
+  getRoomMessageList,
   addPublicMessage,
   addRoomMessage,
   addPrivateMessage
