@@ -1,8 +1,8 @@
 const path = require("path");
 const multer = require("multer");
 const db = require('../core/db');
-const roomMessagesRef = db.collection('roomMessages');
-const userRef = db.collection('users');
+const roomMessagesRef = db.firestore().collection('roomMessages');
+const userRef = db.firestore().collection('users');
 
 var avatars = [];
 var users = [];
@@ -39,15 +39,17 @@ const setAvatar = (req, res, next) => {
 };
 
 const register = async (req, res, next) => {
+  let email = req.body['email'];
   let nickname = req.body['nickname'];
   let first = req.body['first'];
   let last = req.body['last'];
   let born = req.body['born'];
   
-  const usersRef = db.collection('users');
+  const usersRef = db.firestore().collection('users');
   const snapshot = await usersRef.where('nickname', '==', nickname).get();
   if (snapshot.empty) {
-    db.collection('users').doc(nickname).set({
+    db.firestore().collection('users').doc(nickname).set({
+      'email': email,
       'nickname': nickname,
       'first'   : first,
       'last'    : last,
@@ -60,6 +62,18 @@ const register = async (req, res, next) => {
   } else {
     res.json({result : false});
   }
+};
+
+const authVerify = async (req, res, next) => {
+  let nickname = req.body['nickname'];
+
+  await db.auth()
+    .verifyIdToken(req.headers.authorization)
+    .then(() => {
+        console.log("Giris onaylandi. Kullanici adi : " + nickname);
+        res.json({result : true});
+  })
+    .catch(() => res.json({result : false}));
 };
 
 const getAllUsers = () => {
@@ -166,6 +180,7 @@ const isUser = async (client) => {
 }
 
 module.exports = {
+  authVerify,
   register,
   setAvatar,
   avatars,
