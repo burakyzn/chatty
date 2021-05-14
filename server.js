@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const app = express();
+var bodyParser = require('body-parser');
 const http = require('http');
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
@@ -14,11 +15,18 @@ const io = require("socket.io")(server, {
   }
 });
 
+// configure the app to use bodyParser()
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(bodyParser.json());
+
 app.use(cors());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 if(process.env.NODE_ENV === 'production'){
   app.use(express.static('client/build'));
 }
+
 app.use("/", routes);
 
 socket.listeners(io);
