@@ -35,7 +35,7 @@ import {
   useTheme 
 } from '@material-ui/core/styles';
 import { 
-  SET_NICKNAME, 
+  REGISTER, 
   SET_AVATAR_IMG, 
   GET_ROOM_LIST,
   GET_PUBLIC_MESSAGE_LIST,
@@ -45,6 +45,8 @@ import {
 import './main.css';
 import axios from 'axios';
 import {socket} from '../index';
+
+import db from "../core/db";
 
 const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
@@ -115,8 +117,15 @@ export default function MainScreen() {
   const [onlineUsers, setOnlineUsers] = React.useState([]);
   const [message, setMessage] = React.useState('');
   const [allMessage, setAllMessage] = React.useState([]);
+
+  const [email, setEMail] = React.useState('');
   const [nickname, setNickname] = React.useState('');
-  const [openNicknameModal, setOpenNicknameModal] = React.useState(true);
+  const [password, setPassword] = React.useState('');
+  const [firstname, setFirstname] = React.useState('');
+  const [lastname, setLastname] = React.useState('');
+  const [birthday, setBirthday] = React.useState('');
+
+  const [openRegisterModal, setOpenRegisterModal] = React.useState(true);
   const [openAvatarModal, setOpenAvatarModal] = React.useState(false);
   const [openCreateRoomModal, setOpenCreateRoomModal] = React.useState(false);
   const [openRoomsModal, setOpenRoomsModal] = React.useState(false);
@@ -194,21 +203,65 @@ export default function MainScreen() {
     }
   };
 
-  const handleNicknameDialogClose = () => {
+  // const handleNicknameDialogClose = () => {
+  //   if(nickname.length > 0 || nickname.length < 11){
+  //     axios(BASE_API + SET_NICKNAME,{
+  //       params : {
+  //         p_nickname : nickname
+  //       }
+  //     })
+  //     .then((result)=>{
+  //       if(result.data.result === true){
+  //         socket.emit('newuser', nickname);
+  //         setOpenNicknameModal(false);
+  //       } else {
+  //         setIsAlertOpen(true);
+  //       }
+  //     });
+  //   }
+  // };
+
+  const handleRegisterDialogClose = () => {
     if(nickname.length > 0 || nickname.length < 11){
-      axios(BASE_API + SET_NICKNAME,{
-        params : {
-          p_nickname : nickname
-        }
-      })
-      .then((result)=>{
-        if(result.data.result === true){
-          socket.emit('newuser', nickname);
-          setOpenNicknameModal(false);
-        } else {
-          setIsAlertOpen(true);
-        }
-      });
+
+
+      db.auth().createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // let user = userCredential.user;
+          let data = new FormData();
+          data.append('nickname', nickname);
+          data.append('first', firstname);
+          data.append('last', lastname);
+          data.append('born', birthday);
+          
+          const config = {
+            headers: {
+              'content-type': 'application/json'
+            }
+          };
+
+          const user_data = {
+            'nickname': nickname,
+            'first': firstname,
+            'last': lastname,
+            'born': birthday
+          }
+
+          axios.post(BASE_API + REGISTER, user_data, config)
+          .then((result)=>{
+            if(result.data.result === true){
+              socket.emit('newuser', nickname);
+              setOpenRegisterModal(false);
+            } else {
+              setIsAlertOpen(true);
+            }
+          });
+        })
+        .catch((error) => {
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          console.log(errorCode + ' - ' + errorMessage);
+        });
     }
   };
 
@@ -249,9 +302,9 @@ export default function MainScreen() {
     }
   };
 
-  const handleNicknameDialogEnter = (event) => {
+  const handleRegisterDialogEnter = (event) => {
     if (event.key === 'Enter') {
-      handleNicknameDialogClose();
+      handleRegisterDialogClose();
     }
   }
 
@@ -575,27 +628,97 @@ const handleCreateRoomDialogEnter = (event) => {
           ))}
         </List>
       </Drawer>
-      <Dialog open={openNicknameModal} onClose={handleNicknameDialogClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Kullanıcı Adı Seçimi</DialogTitle>
+      <Dialog open={openRegisterModal} onClose={handleRegisterDialogClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Kayıt Ol</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          {/* <DialogContentText>
             Bir kullanıcı adı seçmelisin. 10 Karakterden büyük olamaz.
-          </DialogContentText>
+          </DialogContentText> */}
           <TextField
             autoFocus
             margin="dense"
-            id="name"
-            label="Kullanıcı adı"
-            type="email"
+            id="email"
+            label="E-Mail"
+            type="mail"
             fullWidth
-            onChange={event => setNickname(event.target.value)}
-            onKeyDown={handleNicknameDialogEnter}
+            onChange={event => setEMail(event.target.value)}
+            onKeyDown={handleRegisterDialogEnter}
             required
           />
+          <Typography
+            component="span"
+            variant="caption"
+            className={classes.inline}
+            color="textPrimary"
+          >
+            Kullanıcı adı 10 karakterden büyük olamaz.
+          </Typography>
+          <TextField
+            margin="dense"
+            id="nickname"
+            label="Kullanıcı adı"
+            type="text"
+            fullWidth
+            onChange={event => setNickname(event.target.value)}
+            onKeyDown={handleRegisterDialogEnter}
+            required
+          />
+
+          <TextField
+            margin="dense"
+            id="password"
+            label="Şifre"
+            type="password"
+            fullWidth
+            onChange={event => setPassword(event.target.value)}
+            onKeyDown={handleRegisterDialogEnter}
+            required
+          />
+
+          <TextField
+            margin="dense"
+            id="name"
+            label="Ad"
+            type="text"
+            fullWidth
+            onChange={event => setFirstname(event.target.value)}
+            onKeyDown={handleRegisterDialogEnter}
+            required
+          />
+
+          <TextField
+            margin="dense"
+            id="surname"
+            label="Soyad"
+            type="text"
+            fullWidth
+            onChange={event => setLastname(event.target.value)}
+            onKeyDown={handleRegisterDialogEnter}
+            style={{ marginBottom: 20 }}
+            required
+          />
+          <Typography
+            component="span"
+            variant="subtitle2"
+            className={classes.inline}
+            color="textPrimary"
+          >
+            Doğum Tarihi
+          </Typography>
+          <TextField
+            margin="dense"
+            id="birth"
+            type="date"
+            fullWidth
+            onChange={event => setBirthday(event.target.value)}
+            onKeyDown={handleRegisterDialogEnter}
+            required
+          />
+
           {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Başka bir kullanıcı adı seçmelisin!</DialogContentText> : null}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleNicknameDialogClose} color="primary">
+          <Button onClick={handleRegisterDialogClose} color="primary">
             Tamam
           </Button>
         </DialogActions>
