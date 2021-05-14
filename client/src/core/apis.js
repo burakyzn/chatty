@@ -1,3 +1,4 @@
+export const AUTH_VERIFY = '/user/authVerify';
 export const REGISTER = '/user/register';
 export const SET_AVATAR_IMG = '/user/setAvatar';
 export const GET_ROOM_LIST = '/user/getRoomList';
