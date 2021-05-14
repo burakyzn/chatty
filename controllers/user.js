@@ -21,7 +21,7 @@ const upload = multer({
 
 const setAvatar = (req, res, next) => {
   upload(req, res, (err) => {
-    var _nickname = req.body['nickname'];
+    let _nickname = req.body['nickname'];
 
     if(process.env.NODE_ENV === 'production'){
       //avatars[_nickname] = process.env.APP_NAME + '/uploads/' + req.file.filename;
@@ -38,16 +38,20 @@ const setAvatar = (req, res, next) => {
  });
 };
 
-const setNickname = async (req, res, next) => {
-  var nickname = req.query['p_nickname'];
+const register = async (req, res, next) => {
+  let nickname = req.body['nickname'];
+  let first = req.body['first'];
+  let last = req.body['last'];
+  let born = req.body['born'];
+  
   const usersRef = db.collection('users');
   const snapshot = await usersRef.where('nickname', '==', nickname).get();
   if (snapshot.empty) {
     db.collection('users').doc(nickname).set({
       'nickname': nickname,
-      'first'   : 'adi',
-      'last'    : 'soyadi',
-      'born'    : 1997,
+      'first'   : first,
+      'last'    : last,
+      'born'    : born,
       'rooms' : []
     });
 
@@ -162,7 +166,7 @@ const isUser = async (client) => {
 }
 
 module.exports = {
-  setNickname,
+  register,
   setAvatar,
   avatars,
   getUser,
