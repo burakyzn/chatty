@@ -35,6 +35,7 @@ import {
   useTheme 
 } from '@material-ui/core/styles';
 import { 
+  AUTH_VERIFY,
   REGISTER, 
   SET_AVATAR_IMG, 
   GET_ROOM_LIST,
@@ -125,7 +126,8 @@ export default function MainScreen() {
   const [lastname, setLastname] = React.useState('');
   const [birthday, setBirthday] = React.useState('');
 
-  const [openRegisterModal, setOpenRegisterModal] = React.useState(true);
+  const [openLoginModal, setOpenLoginModal] = React.useState(true);
+  const [openRegisterModal, setOpenRegisterModal] = React.useState(false);
   const [openAvatarModal, setOpenAvatarModal] = React.useState(false);
   const [openCreateRoomModal, setOpenCreateRoomModal] = React.useState(false);
   const [openRoomsModal, setOpenRoomsModal] = React.useState(false);
@@ -203,23 +205,61 @@ export default function MainScreen() {
     }
   };
 
-  // const handleNicknameDialogClose = () => {
-  //   if(nickname.length > 0 || nickname.length < 11){
-  //     axios(BASE_API + SET_NICKNAME,{
-  //       params : {
-  //         p_nickname : nickname
-  //       }
-  //     })
-  //     .then((result)=>{
-  //       if(result.data.result === true){
-  //         socket.emit('newuser', nickname);
-  //         setOpenNicknameModal(false);
-  //       } else {
-  //         setIsAlertOpen(true);
-  //       }
-  //     });
-  //   }
-  // };
+  const handleLoginDialogClose = () => {
+      db.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // let user = userCredential.user;
+          let nick;
+          let user = db.auth().currentUser;
+          if (user != null) {
+            user.providerData.forEach(function (profile) {
+              nick = profile.displayName;
+            });
+          }
+          setNickname(nick);
+          user.getIdToken().then(function(idToken) {
+            const config = {
+              headers: {
+                'content-type': 'application/json',
+                 authorization: idToken,
+              }
+            };
+            console.log(nickname);
+            const data = {
+              'nickname': nick
+            }
+  
+            axios.post(BASE_API + AUTH_VERIFY, data, config)
+            .then((result)=>{
+              console.log(result);
+              if(result.data.result === true){
+                socket.emit('newuser', nick);
+                setOpenLoginModal(false);
+              } else {
+                setIsAlertOpen(true);
+              }
+            });
+          }).catch(function(error) {
+            // Handle error
+          });
+        })
+        .catch((error) => {
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          console.log(errorCode + ' - ' + errorMessage);
+        });
+  };
+
+  const handleLoginDialogEnter = (event) => {
+    if (event.key === 'Enter') {
+      handleLoginDialogClose();
+    }
+  }
+
+  const handleLoginToRegisterButton = (event) => {
+    setOpenLoginModal(false);
+    setOpenRegisterModal(true);
+  }
 
   const handleRegisterDialogClose = () => {
     if(nickname.length > 0 || nickname.length < 11){
@@ -228,12 +268,6 @@ export default function MainScreen() {
       db.auth().createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           // let user = userCredential.user;
-          let data = new FormData();
-          data.append('nickname', nickname);
-          data.append('first', firstname);
-          data.append('last', lastname);
-          data.append('born', birthday);
-          
           const config = {
             headers: {
               'content-type': 'application/json'
@@ -241,6 +275,7 @@ export default function MainScreen() {
           };
 
           const user_data = {
+            'email': email,
             'nickname': nickname,
             'first': firstname,
             'last': lastname,
@@ -250,6 +285,15 @@ export default function MainScreen() {
           axios.post(BASE_API + REGISTER, user_data, config)
           .then((result)=>{
             if(result.data.result === true){
+              let user = db.auth().currentUser;
+              user.updateProfile({
+                displayName: nickname
+              }).then(function() {
+                // Update successful.
+              }).catch(function(error) {
+                // An error happened.
+              });
+
               socket.emit('newuser', nickname);
               setOpenRegisterModal(false);
             } else {
@@ -264,6 +308,11 @@ export default function MainScreen() {
         });
     }
   };
+
+  const handleRegisterToLoginButton = (event) => {
+    setOpenLoginModal(true);
+    setOpenRegisterModal(false);
+  }
 
   const handleRoomsDialogButton = (roomName) => {
     let content = {
@@ -628,6 +677,57 @@ const handleCreateRoomDialogEnter = (event) => {
           ))}
         </List>
       </Drawer>
+
+      <Dialog open={ openLoginModal } onClose={ handleLoginDialogClose } aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">Giriş Yap</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Sohbete dahil olmak için giriş yapın.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="email"
+            label="E-Mail"
+            type="mail"
+            fullWidth
+            onChange={ event => setEMail(event.target.value) }
+            onKeyDown={ handleLoginDialogEnter }
+            required
+          />
+
+          <TextField
+            margin="dense"
+            id="password"
+            label="Şifre"
+            type="password"
+            fullWidth
+            onChange={ event => setPassword(event.target.value) }
+            onKeyDown={ handleLoginDialogEnter }
+            required
+          />
+
+          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>E-Mail veya şifre yanlış!</DialogContentText> : null}
+
+          <Typography
+            component="span"
+            variant="subtitle2"
+            className={classes.inline}
+            color="textPrimary"
+          >
+            Henüz kayıt olmadınız mı?
+          </Typography>
+          <Button onClick={ handleLoginToRegisterButton } color="primary">
+            Kayıt Ol
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleLoginDialogClose} color="primary">
+            Giriş
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={openRegisterModal} onClose={handleRegisterDialogClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Kayıt Ol</DialogTitle>
         <DialogContent>
@@ -716,10 +816,22 @@ const handleCreateRoomDialogEnter = (event) => {
           />
 
           {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Başka bir kullanıcı adı seçmelisin!</DialogContentText> : null}
+        
+          <Typography
+            component="span"
+            variant="subtitle2"
+            className={classes.inline}
+            color="textPrimary"
+          >
+            Zaten üye misiniz?
+          </Typography>
+          <Button onClick={ handleRegisterToLoginButton } color="primary">
+            Giriş Yap
+          </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleRegisterDialogClose} color="primary">
-            Tamam
+            Kayıt Ol
           </Button>
         </DialogActions>
       </Dialog>
