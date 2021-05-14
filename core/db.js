@@ -26,5 +26,5 @@ if(process.env.NODE_ENV === 'production'){
   });
 }
 
-const db = admin.firestore();
+const db = admin;
 module.exports = db;
