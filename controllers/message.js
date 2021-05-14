@@ -1,7 +1,7 @@
 const db = require('../core/db');
-const publicMessageRef = db.collection('roomMessages').doc('public');
-const roomMessagesRef = db.collection('roomMessages');
-const privateMessagesRef = db.collection('privateMessages');
+const publicMessageRef = db.firestore().collection('roomMessages').doc('public');
+const roomMessagesRef = db.firestore().collection('roomMessages');
+const privateMessagesRef = db.firestore().collection('privateMessages');
 
 // GET 
 
@@ -47,7 +47,7 @@ const addPublicMessage = async (nickname, color, avatar, system, msg, to) => {
   } 
 
   try {
-    await db.runTransaction(async (t) => {
+    await db.firestore().runTransaction(async (t) => {
       let _doc = await t.get(publicMessageRef);
       let _messages = _doc.data().messageList;
       _messages.push({
@@ -68,7 +68,7 @@ const addPublicMessage = async (nickname, color, avatar, system, msg, to) => {
 
 const addRoomMessage = async (nickname, color, avatar, system, msg, to) => {
   try {
-    await db.runTransaction(async (t) => {
+    await db.firestore().runTransaction(async (t) => {
       let _doc = await t.get(roomMessagesRef.doc(to));
       let _messages = _doc.data().messageList;
       _messages.push({
@@ -100,7 +100,7 @@ const addPrivateMessage = async (nickname, color, avatar, system, msg, to) => {
   } 
 
   try {
-    await db.runTransaction(async (t) => {
+    await db.firestore().runTransaction(async (t) => {
       let _doc = await t.get(privateMessagesRef.doc(_doc_name));
       let _messages = _doc.data().messageList;
       _messages.push({
