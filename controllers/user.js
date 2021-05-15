@@ -79,6 +79,18 @@ const authVerify = async (req, res, next) => {
     .catch(() => res.json({ result: false }));
 };
 
+const serverAuthVerify = async (token) => {
+  await db
+    .auth()
+    .verifyIdToken(token)
+    .then(() => {
+      return true;
+    })
+    .catch(() => {
+      return false;
+    });
+};
+
 const getAllUsers = () => {
   return users;
 };
@@ -182,6 +194,7 @@ const isUser = async (client) => {
 
 module.exports = {
   authVerify,
+  serverAuthVerify,
   register,
   setAvatar,
   avatars,

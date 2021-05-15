@@ -151,6 +151,10 @@ export default function MainScreen() {
   React.useEffect(() => {
     socket.on('onlineusers', (data) => {
       setOnlineUsers(data.userList);
+
+      data.userList.forEach((user) => {
+        getPreviousPrivateMessages(user.nickname);
+      });
     });
   }, []);
 
@@ -189,12 +193,22 @@ export default function MainScreen() {
     if (createRoomName === '') {
       setIsAlertOpen(true);
     } else {
-      let _content = {
-        room: createRoomName,
-        nickname: nickname,
-      };
-      socket.emit('create room', _content);
-      setOpenCreateRoomModal(false);
+      db.auth()
+        .currentUser.getIdToken()
+        .then(function (idToken) {
+          let _content = {
+            room: createRoomName,
+            nickname: nickname,
+            token: idToken,
+          };
+          socket.emit('create room', _content);
+          setOpenCreateRoomModal(false);
+        })
+        .catch(function (error) {
+          setOpenLoginModal(true);
+          setIsAlertOpen(true);
+          setErrorMessage('Lütfen giriş yapınız.');
+        });
     }
   };
 
@@ -232,13 +246,11 @@ export default function MainScreen() {
                 authorization: idToken,
               },
             };
-            console.log(nickname);
             const data = {
               nickname: nick,
             };
 
             axios.post(BASE_API + AUTH_VERIFY, data, config).then((result) => {
-              console.log(result);
               if (result.data.result === true) {
                 socket.emit('newuser', nick);
                 setOpenLoginModal(false);
@@ -257,7 +269,6 @@ export default function MainScreen() {
         var errorCode = error.code;
         var errorMessage = error.message;
 
-        console.log(errorCode + ' || ' + errorMessage);
         setIsAlertOpen(true);
         if (errorCode === 'auth/wrong-password')
           setErrorMessage('E-Mail veya şifre yanlış.');
@@ -353,7 +364,7 @@ export default function MainScreen() {
       .catch((error) => {
         var errorCode = error.code;
         var errorMessage = error.message;
-        console.log(errorCode + ' || ' + errorMessage);
+
         setIsAlertOpen(true);
         if (errorCode === 'auth/email-already-in-use')
           setErrorMessage(
@@ -372,12 +383,22 @@ export default function MainScreen() {
   };
 
   const handleRoomsDialogButton = (roomName) => {
-    let content = {
-      room: roomName,
-      nickname: nickname,
-    };
-    socket.emit('join room', content);
-    setOpenRoomsModal(false);
+    db.auth()
+      .currentUser.getIdToken()
+      .then(function (idToken) {
+        let content = {
+          room: roomName,
+          nickname: nickname,
+          token: idToken,
+        };
+        socket.emit('join room', content);
+        setOpenRoomsModal(false);
+      })
+      .catch(function (error) {
+        setOpenLoginModal(true);
+        setIsAlertOpen(true);
+        setErrorMessage('Lütfen giriş yapınız.');
+      });
   };
 
   const handleRoomsDialogClose = () => {
@@ -459,35 +480,65 @@ export default function MainScreen() {
   };
 
   const sendRoomMessageHandler = () => {
-    let content = {
-      to: selectedChat,
-      message: message,
-    };
-    socket.emit('chat room message', content);
-    setMessage('');
+    db.auth()
+      .currentUser.getIdToken()
+      .then(function (idToken) {
+        let content = {
+          to: selectedChat,
+          message: message,
+          token: idToken,
+        };
+        socket.emit('chat room message', content);
+        setMessage('');
+      })
+      .catch(function (error) {
+        setOpenLoginModal(true);
+        setIsAlertOpen(true);
+        setErrorMessage('Lütfen giriş yapınız.');
+      });
   };
 
   const sendMessageHandler = () => {
     if (selectedChat === 'public') {
-      let content = {
-        to: selectedChat,
-        message: message,
-      };
-      socket.emit('chat message', content);
-      setMessage('');
+      db.auth()
+        .currentUser.getIdToken()
+        .then(function (idToken) {
+          let content = {
+            to: selectedChat,
+            message: message,
+            token: idToken,
+          };
+          socket.emit('chat message', content);
+          setMessage('');
+        })
+        .catch(function (error) {
+          setOpenLoginModal(true);
+          setIsAlertOpen(true);
+          setErrorMessage('Lütfen giriş yapınız.');
+        });
     } else {
       sendRoomMessageHandler();
     }
   };
 
   const removeRoomOfUser = () => {
-    let content = {
-      room: selectedChat,
-      nickname: nickname,
-    };
-    socket.emit('delete user from room', content);
+    db.auth()
+      .currentUser.getIdToken()
+      .then(function (idToken) {
+        let content = {
+          room: selectedChat,
+          nickname: nickname,
+          token: idToken,
+        };
+        socket.emit('delete user from room', content);
 
-    setSelectedChat('public');
+        setSelectedChat('public');
+      })
+      .catch(function (error) {
+        setOpenLoginModal(true);
+        setIsAlertOpen(true);
+        setErrorMessage('Lütfen giriş yapınız.');
+      });
   };
 
   React.useEffect(() => {
@@ -798,7 +849,6 @@ export default function MainScreen() {
                   }
 
                   setSelectedChat(item.nickname);
-                  getPreviousPrivateMessages(item.nickname);
                 }
               }}
             >
