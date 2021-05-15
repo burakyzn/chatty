@@ -132,6 +132,7 @@ export default function MainScreen() {
   const [myRooms, setMyRooms] = React.useState([]);
   const [createRoomName, setCreateRoomName] = React.useState('');
   const [getPrivateMessage, setGetPrivateMessage] = React.useState([]);
+  const [getErrorMessage, setErrorMessage] = React.useState('');
   const messageRef = React.useRef(null);
 
   const formStyle = {
@@ -198,6 +199,18 @@ export default function MainScreen() {
   };
 
   const handleLoginDialogClose = () => {
+    if (email.length === 0) {
+      setIsAlertOpen(true);
+      setErrorMessage('Lütfen e-mail girin.');
+      return;
+    }
+
+    if (password.length === 0) {
+      setIsAlertOpen(true);
+      setErrorMessage('Lütfen şifre girin.');
+      return;
+    }
+
     db.auth()
       .signInWithEmailAndPassword(email, password)
       .then((userCredential) => {
@@ -231,17 +244,26 @@ export default function MainScreen() {
                 setOpenLoginModal(false);
               } else {
                 setIsAlertOpen(true);
+                setErrorMessage('Doğrulanmamış kullanıcı. Lütfen giriş yapın.');
               }
             });
           })
           .catch(function (error) {
-            // Handle error
+            setIsAlertOpen(true);
+            setErrorMessage('Sunucuya bağlanırken bir sorunla karşılaşıldı.');
           });
       })
       .catch((error) => {
         var errorCode = error.code;
         var errorMessage = error.message;
-        console.log(errorCode + ' - ' + errorMessage);
+
+        console.log(errorCode + ' || ' + errorMessage);
+        setIsAlertOpen(true);
+        if (errorCode === 'auth/wrong-password')
+          setErrorMessage('E-Mail veya şifre yanlış.');
+        else if (errorCode === 'auth/weak-password')
+          setErrorMessage('Şifre en az 6 karakter olmalıdır.');
+        else setErrorMessage(errorMessage);
       });
   };
 
@@ -253,60 +275,99 @@ export default function MainScreen() {
 
   const handleLoginToRegisterButton = (event) => {
     setOpenLoginModal(false);
+    setErrorMessage('');
     setOpenRegisterModal(true);
   };
 
   const handleRegisterDialogClose = () => {
-    if (nickname.length > 0 || nickname.length < 11) {
-      db.auth()
-        .createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          // let user = userCredential.user;
-          const config = {
-            headers: {
-              'content-type': 'application/json',
-            },
-          };
-
-          const user_data = {
-            email: email,
-            nickname: nickname,
-            first: firstname,
-            last: lastname,
-            born: birthday,
-          };
-
-          axios.post(BASE_API + REGISTER, user_data, config).then((result) => {
-            if (result.data.result === true) {
-              let user = db.auth().currentUser;
-              user
-                .updateProfile({
-                  displayName: nickname,
-                })
-                .then(function () {
-                  // Update successful.
-                })
-                .catch(function (error) {
-                  // An error happened.
-                });
-
-              socket.emit('newuser', nickname);
-              setOpenRegisterModal(false);
-            } else {
-              setIsAlertOpen(true);
-            }
-          });
-        })
-        .catch((error) => {
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log(errorCode + ' - ' + errorMessage);
-        });
+    if (email.length === 0) {
+      setIsAlertOpen(true);
+      setErrorMessage('Lütfen E-Mail girin.');
+      return;
     }
+
+    if (nickname.length === 0 || nickname.length > 10) {
+      setIsAlertOpen(true);
+      if (nickname.length === 0) setErrorMessage('Lütfen kullanıcı adı girin.');
+      else setErrorMessage('Kullanıcı adı 10 karakterden büyük olamaz.');
+      return;
+    }
+
+    if (firstname.length === 0) {
+      setIsAlertOpen(true);
+      setErrorMessage('Lütfen adınızı girin.');
+      return;
+    }
+
+    if (lastname.length === 0) {
+      setIsAlertOpen(true);
+      setErrorMessage('Lütfen soyadınızı girin.');
+      return;
+    }
+
+    if (birthday === '') {
+      setIsAlertOpen(true);
+      setErrorMessage('Lütfen doğum tarihinizi girin.');
+      return;
+    }
+
+    db.auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        // let user = userCredential.user;
+        const config = {
+          headers: {
+            'content-type': 'application/json',
+          },
+        };
+
+        const user_data = {
+          email: email,
+          nickname: nickname,
+          first: firstname,
+          last: lastname,
+          born: birthday,
+        };
+
+        axios.post(BASE_API + REGISTER, user_data, config).then((result) => {
+          if (result.data.result === true) {
+            let user = db.auth().currentUser;
+            user
+              .updateProfile({
+                displayName: nickname,
+              })
+              .then(function () {
+                // Update successful.
+              })
+              .catch(function (error) {
+                // An error happened.
+              });
+
+            socket.emit('newuser', nickname);
+            setOpenRegisterModal(false);
+          } else {
+            setIsAlertOpen(true);
+          }
+        });
+      })
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorCode + ' || ' + errorMessage);
+        setIsAlertOpen(true);
+        if (errorCode === 'auth/email-already-in-use')
+          setErrorMessage(
+            'E-Mail başka bir kullanıcı tarafından kullanılmaktadır.'
+          );
+        else if (errorCode === 'auth/weak-password')
+          setErrorMessage('Şifre en az 6 karakter olmalıdır.');
+        else setErrorMessage(errorMessage);
+      });
   };
 
   const handleRegisterToLoginButton = (event) => {
     setOpenLoginModal(true);
+    setErrorMessage('');
     setOpenRegisterModal(false);
   };
 
@@ -795,7 +856,7 @@ export default function MainScreen() {
 
           {isAlertOpen === true ? (
             <DialogContentText style={{ color: 'red' }}>
-              E-Mail veya şifre yanlış!
+              {getErrorMessage}
             </DialogContentText>
           ) : null}
 
@@ -911,7 +972,7 @@ export default function MainScreen() {
 
           {isAlertOpen === true ? (
             <DialogContentText style={{ color: 'red' }}>
-              Başka bir kullanıcı adı seçmelisin!
+              {getErrorMessage}
             </DialogContentText>
           ) : null}
 
