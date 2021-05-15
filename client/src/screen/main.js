@@ -23,31 +23,24 @@ import {
   ListItemAvatar,
   Avatar,
   colors,
-  Grid
+  Grid,
 } from '@material-ui/core';
+import { Menu, ChevronLeft, ChevronRight } from '@material-ui/icons';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import {
-  Menu,
-  ChevronLeft,
-  ChevronRight
-} from '@material-ui/icons';
-import { 
-  makeStyles, 
-  useTheme 
-} from '@material-ui/core/styles';
-import { 
   AUTH_VERIFY,
-  REGISTER, 
-  SET_AVATAR_IMG, 
+  REGISTER,
+  SET_AVATAR_IMG,
   GET_ROOM_LIST,
   GET_PUBLIC_MESSAGE_LIST,
   GET_PRIVATE_MESSAGE_LIST,
-  GET_ROOM_MESSAGE_LIST
+  GET_ROOM_MESSAGE_LIST,
 } from '../core/apis.js';
 import './main.css';
 import axios from 'axios';
-import {socket} from '../index';
+import { socket } from '../index';
 
-import db from "../core/db";
+import db from '../core/db';
 
 const BASE_API = process.env.REACT_APP_API_BASE;
 const drawerWidth = 240;
@@ -142,40 +135,39 @@ export default function MainScreen() {
   const messageRef = React.useRef(null);
 
   const formStyle = {
-    background: "rgba(0, 0, 0, 0.15)",
-    padding: "0.25rem",
-    position: "fixed",
-    bottom: "0",
-    left: openDrawer === true ? "240px" : "0",
-    right: "0",
-    display: "flex",
-    height: "3rem",
-    boxSizing: "border-box",
-    backdropFilter: "blur(10px)"
-  }
+    background: 'rgba(0, 0, 0, 0.15)',
+    padding: '0.25rem',
+    position: 'fixed',
+    bottom: '0',
+    left: openDrawer === true ? '240px' : '0',
+    right: '0',
+    display: 'flex',
+    height: '3rem',
+    boxSizing: 'border-box',
+    backdropFilter: 'blur(10px)',
+  };
 
   React.useEffect(() => {
-    socket.on("onlineusers", data => {
+    socket.on('onlineusers', (data) => {
       setOnlineUsers(data.userList);
     });
   }, []);
 
   React.useEffect(() => {
-    socket.on("my room list", data => {
+    socket.on('my room list', (data) => {
       setMyRooms(data.myRoomList);
-    });
-  }, []);
-  
-  React.useEffect(() => {
-    socket.on("chat message", msg => {
-      setAllMessage(allMessage => [...allMessage, msg]);
     });
   }, []);
 
   React.useEffect(() => {
-    axios(BASE_API + GET_PUBLIC_MESSAGE_LIST)
-    .then((result)=>{
-      if(result.data.messageList.length > 0)
+    socket.on('chat message', (msg) => {
+      setAllMessage((allMessage) => [...allMessage, msg]);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    axios(BASE_API + GET_PUBLIC_MESSAGE_LIST).then((result) => {
+      if (result.data.messageList.length > 0)
         setAllMessage(result.data.messageList);
     });
   }, []);
@@ -193,106 +185,110 @@ export default function MainScreen() {
   };
 
   const handleCreateRoomModalClose = () => {
-    if(createRoomName === ''){
+    if (createRoomName === '') {
       setIsAlertOpen(true);
-    }else{
+    } else {
       let _content = {
-        'room' : createRoomName,
-        'nickname' : nickname
-      }
+        room: createRoomName,
+        nickname: nickname,
+      };
       socket.emit('create room', _content);
       setOpenCreateRoomModal(false);
     }
   };
 
   const handleLoginDialogClose = () => {
-      db.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          // let user = userCredential.user;
-          let nick;
-          let user = db.auth().currentUser;
-          if (user != null) {
-            user.providerData.forEach(function (profile) {
-              nick = profile.displayName;
-            });
-          }
-          setNickname(nick);
-          user.getIdToken().then(function(idToken) {
+    db.auth()
+      .signInWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        // let user = userCredential.user;
+        let nick;
+        let user = db.auth().currentUser;
+        if (user != null) {
+          user.providerData.forEach(function (profile) {
+            nick = profile.displayName;
+          });
+        }
+        setNickname(nick);
+        user
+          .getIdToken()
+          .then(function (idToken) {
             const config = {
               headers: {
                 'content-type': 'application/json',
-                 authorization: idToken,
-              }
+                authorization: idToken,
+              },
             };
             console.log(nickname);
             const data = {
-              'nickname': nick
-            }
-  
-            axios.post(BASE_API + AUTH_VERIFY, data, config)
-            .then((result)=>{
+              nickname: nick,
+            };
+
+            axios.post(BASE_API + AUTH_VERIFY, data, config).then((result) => {
               console.log(result);
-              if(result.data.result === true){
+              if (result.data.result === true) {
                 socket.emit('newuser', nick);
                 setOpenLoginModal(false);
               } else {
                 setIsAlertOpen(true);
               }
             });
-          }).catch(function(error) {
+          })
+          .catch(function (error) {
             // Handle error
           });
-        })
-        .catch((error) => {
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          console.log(errorCode + ' - ' + errorMessage);
-        });
+      })
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorCode + ' - ' + errorMessage);
+      });
   };
 
   const handleLoginDialogEnter = (event) => {
     if (event.key === 'Enter') {
       handleLoginDialogClose();
     }
-  }
+  };
 
   const handleLoginToRegisterButton = (event) => {
     setOpenLoginModal(false);
     setOpenRegisterModal(true);
-  }
+  };
 
   const handleRegisterDialogClose = () => {
-    if(nickname.length > 0 || nickname.length < 11){
-
-
-      db.auth().createUserWithEmailAndPassword(email, password)
+    if (nickname.length > 0 || nickname.length < 11) {
+      db.auth()
+        .createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           // let user = userCredential.user;
           const config = {
             headers: {
-              'content-type': 'application/json'
-            }
+              'content-type': 'application/json',
+            },
           };
 
           const user_data = {
-            'email': email,
-            'nickname': nickname,
-            'first': firstname,
-            'last': lastname,
-            'born': birthday
-          }
+            email: email,
+            nickname: nickname,
+            first: firstname,
+            last: lastname,
+            born: birthday,
+          };
 
-          axios.post(BASE_API + REGISTER, user_data, config)
-          .then((result)=>{
-            if(result.data.result === true){
+          axios.post(BASE_API + REGISTER, user_data, config).then((result) => {
+            if (result.data.result === true) {
               let user = db.auth().currentUser;
-              user.updateProfile({
-                displayName: nickname
-              }).then(function() {
-                // Update successful.
-              }).catch(function(error) {
-                // An error happened.
-              });
+              user
+                .updateProfile({
+                  displayName: nickname,
+                })
+                .then(function () {
+                  // Update successful.
+                })
+                .catch(function (error) {
+                  // An error happened.
+                });
 
               socket.emit('newuser', nickname);
               setOpenRegisterModal(false);
@@ -312,16 +308,16 @@ export default function MainScreen() {
   const handleRegisterToLoginButton = (event) => {
     setOpenLoginModal(true);
     setOpenRegisterModal(false);
-  }
+  };
 
   const handleRoomsDialogButton = (roomName) => {
     let content = {
-      'room' : roomName,
-      'nickname' : nickname 
-    }
+      room: roomName,
+      nickname: nickname,
+    };
     socket.emit('join room', content);
     setOpenRoomsModal(false);
-  }
+  };
 
   const handleRoomsDialogClose = () => {
     setOpenRoomsModal(false);
@@ -329,12 +325,11 @@ export default function MainScreen() {
 
   const handleRoomsDialogOpen = () => {
     axios(BASE_API + GET_ROOM_LIST, {
-      params : {
-        'p_nickname' : nickname
-      }
-    })
-    .then((result)=>{
-      if(result.data.result === true){
+      params: {
+        p_nickname: nickname,
+      },
+    }).then((result) => {
+      if (result.data.result === true) {
         setRooms([...result.data.roomList]);
         setOpenRoomsModal(true);
       } else {
@@ -344,9 +339,9 @@ export default function MainScreen() {
   };
 
   const handleAvatarDialogClose = () => {
-    if(openAvatarModal === true){
+    if (openAvatarModal === true) {
       setOpenAvatarModal(false);
-    }else{
+    } else {
       setOpenAvatarModal(true);
     }
   };
@@ -355,22 +350,22 @@ export default function MainScreen() {
     if (event.key === 'Enter') {
       handleRegisterDialogClose();
     }
-  }
+  };
 
-const handleCreateRoomDialogEnter = (event) => {
-  if (event.key === 'Enter') {
-    handleCreateRoomModalClose();
-  }
-}
+  const handleCreateRoomDialogEnter = (event) => {
+    if (event.key === 'Enter') {
+      handleCreateRoomModalClose();
+    }
+  };
 
   const onAvatarChange = (event) => {
     setAvatar(event.target.files[0]);
-  }
+  };
 
   const uploadAvatarImage = (event) => {
     event.preventDefault();
-    if(process.env.NODE_ENV === 'production'){
-      console.log('Canli ortam profil resmi yuklenememektedir.')
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Canli ortam profil resmi yuklenememektedir.');
       return;
     } else {
       const formData = new FormData();
@@ -378,18 +373,20 @@ const handleCreateRoomDialogEnter = (event) => {
       formData.append('nickname', nickname);
       const config = {
         headers: {
-          'content-type': 'multipart/form-data'
-        }
+          'content-type': 'multipart/form-data',
+        },
       };
-      axios.post(BASE_API + SET_AVATAR_IMG, formData, config)
+      axios
+        .post(BASE_API + SET_AVATAR_IMG, formData, config)
         .then((result) => {
           if (result.data.result === 'null') {
-            console.log("basarisiz");
+            console.log('basarisiz');
           } else {
             setAvatarURL(result.data.result);
             setOpenAvatarModal(false);
           }
-        }).catch((error) => {});
+        })
+        .catch((error) => {});
     }
   };
 
@@ -398,98 +395,123 @@ const handleCreateRoomDialogEnter = (event) => {
       sendMessageHandler();
       event.preventDefault();
     }
-  }
+  };
 
   const sendRoomMessageHandler = () => {
     let content = {
-      'to' : selectedChat,
-      'message' : message
-    }
+      to: selectedChat,
+      message: message,
+    };
     socket.emit('chat room message', content);
     setMessage('');
-  }
+  };
 
   const sendMessageHandler = () => {
-    if(selectedChat === 'public'){
+    if (selectedChat === 'public') {
       let content = {
-        'to' : selectedChat,
-        'message' : message
+        to: selectedChat,
+        message: message,
       };
-     socket.emit('chat message', content);
-     setMessage('');
+      socket.emit('chat message', content);
+      setMessage('');
     } else {
       sendRoomMessageHandler();
     }
-  }
+  };
 
   const removeRoomOfUser = () => {
-    let content = { 
-      'room' : selectedChat,
-      'nickname' : nickname
-    }
+    let content = {
+      room: selectedChat,
+      nickname: nickname,
+    };
     socket.emit('delete user from room', content);
 
     setSelectedChat('public');
-  }
+  };
 
   React.useEffect(() => {
     if (messageRef.current) {
-      messageRef.current.scrollIntoView({ behaviour: "smooth" });
+      messageRef.current.scrollIntoView({ behaviour: 'smooth' });
     }
   }, [allMessage]);
 
   const msgAlerts = (text) => {
     let tmp = true;
-    allMessage.forEach(msg => {
-      if(msg.to === text){
-        if(selectedChat !== text && msg.read === false && msg.sender !== nickname){
+    allMessage.forEach((msg) => {
+      if (msg.to === text) {
+        if (
+          selectedChat !== text &&
+          msg.read === false &&
+          msg.sender !== nickname
+        ) {
           tmp = false;
         }
       }
-    })
-    return(tmp);
-  }
+    });
+    return tmp;
+  };
 
   const msgAlertsPrivate = (text) => {
     let tmp = true;
-    allMessage.forEach(msg => {
-      if(msg.nickname === text){
-        if(selectedChat !== text && msg.read === false && msg.nickname !== nickname && msg.to === nickname){
+    allMessage.forEach((msg) => {
+      if (msg.nickname === text) {
+        if (
+          selectedChat !== text &&
+          msg.read === false &&
+          msg.nickname !== nickname &&
+          msg.to === nickname
+        ) {
           tmp = false;
         }
       }
-    })
-    return(tmp);
-  }
+    });
+    return tmp;
+  };
 
   const getPreviousPrivateMessages = (to) => {
-    axios(BASE_API + GET_PRIVATE_MESSAGE_LIST,{
-      params : {
-        'p_from'  : nickname,
-        'p_to'    : to
-      }
-    })
-    .then((result)=>{
-      if(result.data.messageList.length > 0 && (getPrivateMessage.indexOf(result.data.messageId) === -1)){
-        setGetPrivateMessage(getPrivateMessage => [...getPrivateMessage,result.data.messageId]);
-        setAllMessage(allMessage => [...allMessage, ...(result.data.messageList)]);
+    axios(BASE_API + GET_PRIVATE_MESSAGE_LIST, {
+      params: {
+        p_from: nickname,
+        p_to: to,
+      },
+    }).then((result) => {
+      if (
+        result.data.messageList.length > 0 &&
+        getPrivateMessage.indexOf(result.data.messageId) === -1
+      ) {
+        setGetPrivateMessage((getPrivateMessage) => [
+          ...getPrivateMessage,
+          result.data.messageId,
+        ]);
+        setAllMessage((allMessage) => [
+          ...allMessage,
+          ...result.data.messageList,
+        ]);
       }
     });
-  }
+  };
 
   const getPreviousRoomMessage = (room_name) => {
-    axios(BASE_API + GET_ROOM_MESSAGE_LIST,{
-      params : {
-        'p_room_name'  : room_name
-      }
-    })
-    .then((result)=>{
-      if(result.data.messageList.length > 0 && (getPrivateMessage.indexOf(result.data.messageId) === -1)){
-        setGetPrivateMessage(getPrivateMessage => [...getPrivateMessage,result.data.messageId]);
-        setAllMessage(allMessage => [...allMessage, ...(result.data.messageList)]);
+    axios(BASE_API + GET_ROOM_MESSAGE_LIST, {
+      params: {
+        p_room_name: room_name,
+      },
+    }).then((result) => {
+      if (
+        result.data.messageList.length > 0 &&
+        getPrivateMessage.indexOf(result.data.messageId) === -1
+      ) {
+        setGetPrivateMessage((getPrivateMessage) => [
+          ...getPrivateMessage,
+          result.data.messageId,
+        ]);
+        setAllMessage((allMessage) => [
+          ...allMessage,
+          ...result.data.messageList,
+        ]);
       }
     });
-  }
+  };
 
   return (
     <div className={classes.root}>
@@ -510,18 +532,24 @@ const handleCreateRoomDialogEnter = (event) => {
           >
             <Menu />
           </IconButton>
-          <Grid container justify = "flex-start">
+          <Grid container justify="flex-start">
             <Typography variant="h6" noWrap>
               {selectedChat === 'public' ? 'Genel Chat' : selectedChat}
             </Typography>
           </Grid>
           {selectedChat === 'public' ? null : (
-            <Grid container justify = "flex-end">
-              <Button variant="contained" color="secondary" component="span" style={{ margin: 10 }} onClick={ removeRoomOfUser }>
+            <Grid container justify="flex-end">
+              <Button
+                variant="contained"
+                color="secondary"
+                component="span"
+                style={{ margin: 10 }}
+                onClick={removeRoomOfUser}
+              >
                 Odadan Ayrıl
               </Button>
-            </Grid>)
-          }
+            </Grid>
+          )}
         </Toolbar>
       </AppBar>
       <Drawer
@@ -539,40 +567,63 @@ const handleCreateRoomDialogEnter = (event) => {
           </IconButton>
         </div>
         <Divider />
-        <Grid container justify = "center">
-          <Avatar alt={ nickname } src={ avatarURL } style={{ height: 80, width: 80, margin:10 }} onClick={ setOpenAvatarModal } />
+        <Grid container justify="center">
+          <Avatar
+            alt={nickname}
+            src={avatarURL}
+            style={{ height: 80, width: 80, margin: 10 }}
+            onClick={setOpenAvatarModal}
+          />
         </Grid>
-        <Grid container justify = "center">
+        <Grid container justify="center">
           {nickname}
         </Grid>
         <Divider />
-        <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleRoomsDialogOpen }>
+        <Button
+          variant="contained"
+          color="primary"
+          component="span"
+          style={{ margin: 10 }}
+          onClick={handleRoomsDialogOpen}
+        >
           Bir Odaya Katıl
         </Button>
         <Divider />
-        <Button variant="contained" color="primary" component="span" style={{ margin: 10 }} onClick={ handleCreateRoomModalOpen }>
+        <Button
+          variant="contained"
+          color="primary"
+          component="span"
+          style={{ margin: 10 }}
+          onClick={handleCreateRoomModalOpen}
+        >
           Oda Oluştur
         </Button>
         <Divider />
         <List style={{ margin: 0, padding: 0 }}>
           {['Genel Chat'].map((text, index) => {
-            return(
-              <ListItem button key={text} onClick={()=>{ 
-                let tmp = [];
-                  allMessage.forEach(msg => {
-                    for (let i = 0; i < allMessage.length; i++){
-                      if(allMessage[i].to === 'public' && allMessage[i].read === false){
+            return (
+              <ListItem
+                button
+                key={text}
+                onClick={() => {
+                  let tmp = [];
+                  allMessage.forEach((msg) => {
+                    for (let i = 0; i < allMessage.length; i++) {
+                      if (
+                        allMessage[i].to === 'public' &&
+                        allMessage[i].read === false
+                      ) {
                         tmp.push(allMessage[i]);
                       }
                     }
 
-                    for(let a = 0; a < tmp.length; a++){
+                    for (let a = 0; a < tmp.length; a++) {
                       tmp[a].read = true;
                     }
-                  })
-                  for (let i = 0; i < allMessage.length; i++){
-                    for(let a = 0; a < tmp.length; a++){
-                      if(allMessage[i] === tmp[a]){
+                  });
+                  for (let i = 0; i < allMessage.length; i++) {
+                    for (let a = 0; a < tmp.length; a++) {
+                      if (allMessage[i] === tmp[a]) {
                         let _tmp = allMessage;
                         _tmp[i].read = true;
                         setAllMessage(_tmp);
@@ -580,105 +631,140 @@ const handleCreateRoomDialogEnter = (event) => {
                     }
                   }
 
-                setSelectedChat('public') 
-                }}>
-                <Badge color="secondary" variant="dot" invisible={ msgAlerts('public') }>
-                  <ListItemText primary='Genel Chat' />
+                  setSelectedChat('public');
+                }}
+              >
+                <Badge
+                  color="secondary"
+                  variant="dot"
+                  invisible={msgAlerts('public')}
+                >
+                  <ListItemText primary="Genel Chat" />
                 </Badge>
               </ListItem>
-            )})}
+            );
+          })}
         </List>
         <Divider />
         <Typography
           component="span"
           variant="subtitle2"
           color="textPrimary"
-          align='center'
-          style={{ fontSize:20 }}
+          align="center"
+          style={{ fontSize: 20 }}
         >
           Odalar
         </Typography>
         <List>
           {[...myRooms].map((text, index) => {
-            return(
-              <ListItem button key={text} onClick={()=>{ 
-                let tmp = [];
-                allMessage.forEach(msg => {
-                  for (let i = 0; i < allMessage.length; i++){
-                    if(allMessage[i].to === text && allMessage[i].read === false){
-                      tmp.push(allMessage[i]);
+            return (
+              <ListItem
+                button
+                key={text}
+                onClick={() => {
+                  let tmp = [];
+                  allMessage.forEach((msg) => {
+                    for (let i = 0; i < allMessage.length; i++) {
+                      if (
+                        allMessage[i].to === text &&
+                        allMessage[i].read === false
+                      ) {
+                        tmp.push(allMessage[i]);
+                      }
+                    }
+
+                    for (let a = 0; a < tmp.length; a++) {
+                      tmp[a].read = true;
+                    }
+                  });
+                  for (let i = 0; i < allMessage.length; i++) {
+                    for (let a = 0; a < tmp.length; a++) {
+                      if (allMessage[i] === tmp[a]) {
+                        let _tmp = allMessage;
+                        _tmp[i].read = true;
+                        setAllMessage(_tmp);
+                      }
                     }
                   }
 
-                  for(let a = 0; a < tmp.length; a++){
-                    tmp[a].read = true;
-                  }
-                })
-                for (let i = 0; i < allMessage.length; i++){
-                  for(let a = 0; a < tmp.length; a++){
-                    if(allMessage[i] === tmp[a]){
-                      let _tmp = allMessage;
-                      _tmp[i].read = true;
-                      setAllMessage(_tmp);
-                    }
-                  }
-                }
-
-                setSelectedChat(text)
-                getPreviousRoomMessage(text);
-                }}>
-                      <Badge color="secondary" variant="dot" invisible={ msgAlerts(text) }>
-                        <ListItemText primary={text} />
-                      </Badge>
-                    </ListItem>
-              )
-              
-            }
-          )}
+                  setSelectedChat(text);
+                  getPreviousRoomMessage(text);
+                }}
+              >
+                <Badge
+                  color="secondary"
+                  variant="dot"
+                  invisible={msgAlerts(text)}
+                >
+                  <ListItemText primary={text} />
+                </Badge>
+              </ListItem>
+            );
+          })}
         </List>
         <Divider />
         <List>
           {onlineUsers.map((item, index) => (
-            <ListItem button key={item.socketID} onClick={() => {
-              if(item.nickname !== nickname){
-              let tmp = [];
-                allMessage.forEach(msg => {
-                  for (let i = 0; i < allMessage.length; i++){
-                    if(allMessage[i].nickname === item.nickname && allMessage[i].read === false && allMessage[i].to === nickname){
-                      tmp.push(allMessage[i]);
+            <ListItem
+              button
+              key={item.socketID}
+              onClick={() => {
+                if (item.nickname !== nickname) {
+                  let tmp = [];
+                  allMessage.forEach((msg) => {
+                    for (let i = 0; i < allMessage.length; i++) {
+                      if (
+                        allMessage[i].nickname === item.nickname &&
+                        allMessage[i].read === false &&
+                        allMessage[i].to === nickname
+                      ) {
+                        tmp.push(allMessage[i]);
+                      }
+                    }
+
+                    for (let a = 0; a < tmp.length; a++) {
+                      tmp[a].read = true;
+                    }
+                  });
+                  for (let i = 0; i < allMessage.length; i++) {
+                    for (let a = 0; a < tmp.length; a++) {
+                      if (allMessage[i] === tmp[a]) {
+                        let _tmp = allMessage;
+                        _tmp[i].read = true;
+                        setAllMessage(_tmp);
+                      }
                     }
                   }
 
-                  for(let a = 0; a < tmp.length; a++){
-                    tmp[a].read = true;
-                  }
-                })
-                for (let i = 0; i < allMessage.length; i++){
-                  for(let a = 0; a < tmp.length; a++){
-                    if(allMessage[i] === tmp[a]){
-                      let _tmp = allMessage;
-                      _tmp[i].read = true;
-                      setAllMessage(_tmp);
-                    }
-                  }
+                  setSelectedChat(item.nickname);
+                  getPreviousPrivateMessages(item.nickname);
                 }
-
-              
-                setSelectedChat(item.nickname)
-                getPreviousPrivateMessages(item.nickname);
-              }
-              }}>
-
-              <Badge color="secondary" variant="dot" invisible={ msgAlertsPrivate(item.nickname) }>
-              <Icon className="fas fa-circle" style={{'color': colors.green[500] }} />
-                <ListItemText primary={item.nickname} style={{marginLeft : 10}} />
+              }}
+            >
+              <Badge
+                color="secondary"
+                variant="dot"
+                invisible={msgAlertsPrivate(item.nickname)}
+              >
+                <Icon
+                  className="fas fa-circle"
+                  style={{ color: colors.green[500] }}
+                />
+                <ListItemText
+                  primary={item.nickname}
+                  style={{ marginLeft: 10 }}
+                />
               </Badge>
             </ListItem>
           ))}
         </List>
       </Drawer>
 
-      <Dialog open={ openLoginModal } onClose={ handleLoginDialogClose } aria-labelledby="form-dialog-title">
+      <Dialog
+        open={openLoginModal}
+        onClose={handleLoginDialogClose}
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle id="form-dialog-title">Giriş Yap</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -691,8 +777,8 @@ const handleCreateRoomDialogEnter = (event) => {
             label="E-Mail"
             type="mail"
             fullWidth
-            onChange={ event => setEMail(event.target.value) }
-            onKeyDown={ handleLoginDialogEnter }
+            onChange={(event) => setEMail(event.target.value)}
+            onKeyDown={handleLoginDialogEnter}
             required
           />
 
@@ -702,12 +788,16 @@ const handleCreateRoomDialogEnter = (event) => {
             label="Şifre"
             type="password"
             fullWidth
-            onChange={ event => setPassword(event.target.value) }
-            onKeyDown={ handleLoginDialogEnter }
+            onChange={(event) => setPassword(event.target.value)}
+            onKeyDown={handleLoginDialogEnter}
             required
           />
 
-          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>E-Mail veya şifre yanlış!</DialogContentText> : null}
+          {isAlertOpen === true ? (
+            <DialogContentText style={{ color: 'red' }}>
+              E-Mail veya şifre yanlış!
+            </DialogContentText>
+          ) : null}
 
           <Typography
             component="span"
@@ -717,7 +807,7 @@ const handleCreateRoomDialogEnter = (event) => {
           >
             Henüz kayıt olmadınız mı?
           </Typography>
-          <Button onClick={ handleLoginToRegisterButton } color="primary">
+          <Button onClick={handleLoginToRegisterButton} color="primary">
             Kayıt Ol
           </Button>
         </DialogContent>
@@ -728,7 +818,11 @@ const handleCreateRoomDialogEnter = (event) => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openRegisterModal} onClose={handleRegisterDialogClose} aria-labelledby="form-dialog-title">
+      <Dialog
+        open={openRegisterModal}
+        onClose={handleRegisterDialogClose}
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle id="form-dialog-title">Kayıt Ol</DialogTitle>
         <DialogContent>
           {/* <DialogContentText>
@@ -741,7 +835,7 @@ const handleCreateRoomDialogEnter = (event) => {
             label="E-Mail"
             type="mail"
             fullWidth
-            onChange={event => setEMail(event.target.value)}
+            onChange={(event) => setEMail(event.target.value)}
             onKeyDown={handleRegisterDialogEnter}
             required
           />
@@ -759,7 +853,7 @@ const handleCreateRoomDialogEnter = (event) => {
             label="Kullanıcı adı"
             type="text"
             fullWidth
-            onChange={event => setNickname(event.target.value)}
+            onChange={(event) => setNickname(event.target.value)}
             onKeyDown={handleRegisterDialogEnter}
             required
           />
@@ -770,7 +864,7 @@ const handleCreateRoomDialogEnter = (event) => {
             label="Şifre"
             type="password"
             fullWidth
-            onChange={event => setPassword(event.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             onKeyDown={handleRegisterDialogEnter}
             required
           />
@@ -781,7 +875,7 @@ const handleCreateRoomDialogEnter = (event) => {
             label="Ad"
             type="text"
             fullWidth
-            onChange={event => setFirstname(event.target.value)}
+            onChange={(event) => setFirstname(event.target.value)}
             onKeyDown={handleRegisterDialogEnter}
             required
           />
@@ -792,7 +886,7 @@ const handleCreateRoomDialogEnter = (event) => {
             label="Soyad"
             type="text"
             fullWidth
-            onChange={event => setLastname(event.target.value)}
+            onChange={(event) => setLastname(event.target.value)}
             onKeyDown={handleRegisterDialogEnter}
             style={{ marginBottom: 20 }}
             required
@@ -810,13 +904,17 @@ const handleCreateRoomDialogEnter = (event) => {
             id="birth"
             type="date"
             fullWidth
-            onChange={event => setBirthday(event.target.value)}
+            onChange={(event) => setBirthday(event.target.value)}
             onKeyDown={handleRegisterDialogEnter}
             required
           />
 
-          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Başka bir kullanıcı adı seçmelisin!</DialogContentText> : null}
-        
+          {isAlertOpen === true ? (
+            <DialogContentText style={{ color: 'red' }}>
+              Başka bir kullanıcı adı seçmelisin!
+            </DialogContentText>
+          ) : null}
+
           <Typography
             component="span"
             variant="subtitle2"
@@ -825,7 +923,7 @@ const handleCreateRoomDialogEnter = (event) => {
           >
             Zaten üye misiniz?
           </Typography>
-          <Button onClick={ handleRegisterToLoginButton } color="primary">
+          <Button onClick={handleRegisterToLoginButton} color="primary">
             Giriş Yap
           </Button>
         </DialogContent>
@@ -836,30 +934,50 @@ const handleCreateRoomDialogEnter = (event) => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openAvatarModal} onClose={ handleAvatarDialogClose } aria-labelledby="form-dialog-title">
+      <Dialog
+        open={openAvatarModal}
+        onClose={handleAvatarDialogClose}
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle id="form-dialog-title">Profil Fotoğrafı Yükle</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Profil fotoğrafını değiştirmek için resim yükleyiniz.
           </DialogContentText>
-          <form onSubmit={ uploadAvatarImage } method="post" enctype="multipart/form-data">
+          <form
+            onSubmit={uploadAvatarImage}
+            method="post"
+            enctype="multipart/form-data"
+          >
             <Grid container>
               <Grid item xs={6}>
-              <input
-                    className={classes.input}
-                    id="contained-button-file"
-                    multiple
-                    name="avatar" type="file" onChange={ onAvatarChange }
-                    style = {{display : "none"}}
-                  />
-                  <label htmlFor="contained-button-file">
-                    <Button variant="contained" color="primary" component="span">
-                      Dosya Seç
-                    </Button>
-                  </label>
+                <input
+                  className={classes.input}
+                  id="contained-button-file"
+                  multiple
+                  name="avatar"
+                  type="file"
+                  onChange={onAvatarChange}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="contained-button-file">
+                  <Button variant="contained" color="primary" component="span">
+                    Dosya Seç
+                  </Button>
+                </label>
               </Grid>
-              <Grid item xs={6} direction="row-reverse" style={{direction : "rtl"}}>
-                <Button style={{marginLeft : "50px"}} type="submit" variant="contained" color="primary">
+              <Grid
+                item
+                xs={6}
+                direction="row-reverse"
+                style={{ direction: 'rtl' }}
+              >
+                <Button
+                  style={{ marginLeft: '50px' }}
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                >
                   Yükle
                 </Button>
               </Grid>
@@ -867,58 +985,83 @@ const handleCreateRoomDialogEnter = (event) => {
                 {avatar != null ? <p>{avatar.name}</p> : null}
               </Grid>
               <Grid item xs={12}>
-                {process.env.NODE_ENV === 'production' ? <p>Canlı ortamda profil fotografi yüklenmesi engellenmiştir.</p> : null}
+                {process.env.NODE_ENV === 'production' ? (
+                  <p>
+                    Canlı ortamda profil fotografi yüklenmesi engellenmiştir.
+                  </p>
+                ) : null}
               </Grid>
             </Grid>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={ openCreateRoomModal } onClose={ handleCreateRoomModalClose } aria-labelledby="form-dialog-title">
+      <Dialog
+        open={openCreateRoomModal}
+        onClose={handleCreateRoomModalClose}
+        aria-labelledby="form-dialog-title"
+      >
         <DialogTitle id="form-dialog-title">Oda Oluştur</DialogTitle>
         <DialogContent>
           <DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="room_name"
-            label="Oda adı"
-            type="text"
-            fullWidth
-            onChange={ event => setCreateRoomName(event.target.value) }
-            onKeyDown={ handleCreateRoomDialogEnter }
-            required
-          />
+            <TextField
+              autoFocus
+              margin="dense"
+              id="room_name"
+              label="Oda adı"
+              type="text"
+              fullWidth
+              onChange={(event) => setCreateRoomName(event.target.value)}
+              onKeyDown={handleCreateRoomDialogEnter}
+              required
+            />
           </DialogContentText>
-          {isAlertOpen === true ? <DialogContentText style={{color : "red"}}>Bir oda adı girmelisin!</DialogContentText> : null}
+          {isAlertOpen === true ? (
+            <DialogContentText style={{ color: 'red' }}>
+              Bir oda adı girmelisin!
+            </DialogContentText>
+          ) : null}
         </DialogContent>
         <DialogActions>
-          <Button onClick={ handleCreateRoomModalClose } color="primary">
+          <Button onClick={handleCreateRoomModalClose} color="primary">
             Tamam
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={ openRoomsModal } onClose={ handleRoomsDialogClose } aria-labelledby="form-dialog-title" fullWidth maxWidth="sm">
+      <Dialog
+        open={openRoomsModal}
+        onClose={handleRoomsDialogClose}
+        aria-labelledby="form-dialog-title"
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle id="form-dialog-title">Odaya Katıl</DialogTitle>
         <DialogContent>
           <DialogContentText>
-          <List>
-          {rooms.map((text, index) => (
-            <ListItem>
-              <Button key={text} variant="contained" color="primary" component="span" style={{ marginRight: 10 }} onClick={()=> {
-                handleRoomsDialogButton(text);
-              }} >
-                +
-              </Button>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
-        </List>
+            <List>
+              {rooms.map((text, index) => (
+                <ListItem>
+                  <Button
+                    key={text}
+                    variant="contained"
+                    color="primary"
+                    component="span"
+                    style={{ marginRight: 10 }}
+                    onClick={() => {
+                      handleRoomsDialogButton(text);
+                    }}
+                  >
+                    +
+                  </Button>
+                  <ListItemText primary={text} />
+                </ListItem>
+              ))}
+            </List>
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={ handleRoomsDialogClose } color="primary">
+          <Button onClick={handleRoomsDialogClose} color="primary">
             Kapat
           </Button>
         </DialogActions>
@@ -929,69 +1072,80 @@ const handleCreateRoomDialogEnter = (event) => {
           [classes.contentShift]: openDrawer,
         })}
       >
-      <div className={classes.drawerHeader} />
-      <ul id="messages">
-        {allMessage.map((content, index) => (
-          <List disablePadding ref={messageRef}>
-            {(content.to === nickname && content.nickname === selectedChat) || 
-            (content.nickname === nickname && content.to === selectedChat) || 
-            (content.to === selectedChat)?
-              <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
-              {(() => {
-                if(content.system === true){
-                  return("");
-                }else{
-                  let tmp = [];
-                  allMessage.forEach(msg => {
-                    for (let i = 0; i < allMessage.length; i++){
-                      if(allMessage[i].to === selectedChat && allMessage[i].read === false){
-                        tmp.push(allMessage[i]);
+        <div className={classes.drawerHeader} />
+        <ul id="messages">
+          {allMessage.map((content, index) => (
+            <List disablePadding ref={messageRef}>
+              {(content.to === nickname && content.nickname === selectedChat) ||
+              (content.nickname === nickname && content.to === selectedChat) ||
+              content.to === selectedChat ? (
+                <ListItem key={index} style={{ padding: 0, paddingLeft: 15 }}>
+                  {(() => {
+                    if (content.system === true) {
+                      return '';
+                    } else {
+                      let tmp = [];
+                      allMessage.forEach((msg) => {
+                        for (let i = 0; i < allMessage.length; i++) {
+                          if (
+                            allMessage[i].to === selectedChat &&
+                            allMessage[i].read === false
+                          ) {
+                            tmp.push(allMessage[i]);
+                          }
+                        }
+                      });
+                      for (let i = 0; i < allMessage.length; i++) {
+                        for (let a = 0; a < tmp.length; a++) {
+                          if (allMessage[i] === tmp[a]) {
+                            let _tmp = allMessage;
+                            _tmp[i].read = true;
+                            setAllMessage(_tmp);
+                          }
+                        }
                       }
-                    }
-                  })
-                  for (let i = 0; i < allMessage.length; i++){
-                    for(let a = 0; a < tmp.length; a++){
-                      if(allMessage[i] === tmp[a]){
-                        let _tmp = allMessage;
-                        _tmp[i].read = true;
-                        setAllMessage(_tmp);
-                      }
-                    }
-                  }
 
-                  return(
-                    <ListItemAvatar>
-                      <Avatar alt={ content.nickname } src={ content.avatar } />
-                    </ListItemAvatar>
-                  );
-                }
-              })()
-              }
-              <ListItemText
-                style={{ padding: 0 }}
-                primary={content.nickname}
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      component="span"
-                      variant="body1"
-                      className={classes.inline}
-                      color="textPrimary"
-                    >
-                      {content.msg}
-                    </Typography>
-                  </React.Fragment>
-                }
-               />
-            </ListItem> : null
-            }
-          </List>
-        ))}
-      </ul>
-      <form id="form" action="" style={formStyle}>
-        <input type="text" id="input" autoComplete="off" value={message} onChange={event => setMessage(event.target.value)} onKeyDown={sendMessageHandlerEnter} />
-        <button type="button" onClick={sendMessageHandler} id="submit">Gönder</button>
-      </form>
+                      return (
+                        <ListItemAvatar>
+                          <Avatar alt={content.nickname} src={content.avatar} />
+                        </ListItemAvatar>
+                      );
+                    }
+                  })()}
+                  <ListItemText
+                    style={{ padding: 0 }}
+                    primary={content.nickname}
+                    secondary={
+                      <React.Fragment>
+                        <Typography
+                          component="span"
+                          variant="body1"
+                          className={classes.inline}
+                          color="textPrimary"
+                        >
+                          {content.msg}
+                        </Typography>
+                      </React.Fragment>
+                    }
+                  />
+                </ListItem>
+              ) : null}
+            </List>
+          ))}
+        </ul>
+        <form id="form" action="" style={formStyle}>
+          <input
+            type="text"
+            id="input"
+            autoComplete="off"
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            onKeyDown={sendMessageHandlerEnter}
+          />
+          <button type="button" onClick={sendMessageHandler} id="submit">
+            Gönder
+          </button>
+        </form>
       </main>
     </div>
   );

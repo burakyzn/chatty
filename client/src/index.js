@@ -2,8 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import MainScreen from './screen/main';
-import {io} from 'socket.io-client';
-const socket = process.env.NODE_ENV === 'production' ? io() : io(process.env.REACT_APP_API_BASE);
+import { io } from 'socket.io-client';
+const socket =
+  process.env.NODE_ENV === 'production'
+    ? io()
+    : io(process.env.REACT_APP_API_BASE);
 
 ReactDOM.render(
   <React.StrictMode>
@@ -12,4 +15,4 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-export {socket};
+export { socket };
