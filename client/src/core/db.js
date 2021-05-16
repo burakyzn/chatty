@@ -2,6 +2,15 @@ import firebase from 'firebase';
 let fire;
 
 if (process.env.NODE_ENV === 'production') {
+  console.log('production---');
+
+  console.log(process.env.REACT_APP_FIREBASE_CL_API_KEY);
+  console.log(process.env.REACT_APP_FIREBASE_CL_AUTH_DOMAIN);
+  console.log(process.env.REACT_APP_FIREBASE_CL_PROJECT_ID);
+  console.log(process.env.REACT_APP_FIREBASE_CL_STORAGE_BUCKET);
+  console.log(process.env.REACT_APP_FIREBASE_CL_MESSAGING_SENDER_ID);
+  console.log(process.env.REACT_APP_FIREBASE_CL_APP_ID);
+
   fire = firebase.initializeApp({
     apiKey: process.env.REACT_APP_FIREBASE_CL_API_KEY,
     authDomain: process.env.REACT_APP_FIREBASE_CL_AUTH_DOMAIN,
