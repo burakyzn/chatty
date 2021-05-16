@@ -1,22 +1,37 @@
 const userController = require('../controllers/user');
 const messageController = require('../controllers/message');
 
+// genel sistem mesaji
+var systemContent = {
+  nickname: '',
+  color: '#000',
+  system: true,
+  msg: '', // mesaj olarak doldurulacak
+};
+
+// odalar icin kullanilan sistem mesaji
+var systemRoomContent = {
+  nickname: '',
+  color: '#000',
+  system: true,
+  msg: '', // mesaj olarak doldurulacak
+  to: '', // gidecek oda ismi olarak doldurulacak
+  read: false,
+};
+
+var _io;
+
 const listeners = (io) => {
+  _io = io;
+
   io.on('connection', (socket) => {
     console.log('Yeni kullanici giris yapti. Socket id : ' + socket.id);
 
-    var sysContent = {
-      nickname: '',
-      color: '#000',
-      system: true,
-      msg: '',
-    };
+    // sistem mesaji gonderiliyor
+    systemContent.msg = 'Chat sistemine hoşgeldin.';
+    io.to(socket.id).emit('chat message', systemContent);
 
-    sysContent.msg = 'Chat sistemine hoşgeldin.';
-    io.to(socket.id).emit('chat message', sysContent);
-
-    socket.on('newuser', (nickname) => {
-      console.log(socket.id);
+    socket.on('newuser', async (nickname) => {
       var user = {
         socketID: socket.id,
         nickname: nickname,
@@ -27,22 +42,31 @@ const listeners = (io) => {
 
       userController.addUser(user);
 
-      sysContent.msg = 'Kullanıcı adını ' + nickname + ' olarak belirledin.';
-      io.to(socket.id).emit('chat message', sysContent);
+      systemContent.msg = 'Kullanıcı adını ' + nickname + ' olarak belirledin.';
+      io.to(socket.id).emit('chat message', systemContent);
 
-      var users = userController.getAllUsers();
-      io.emit('onlineusers', { userList: [...users] });
+      // online kullanici bilgisi gonderiliyor
+      emitOnlineUsers();
 
-      socket.once('disconnect', () => {
+      // offline kullanici bilgisi gonderiliyor
+      await emitOfflineUsers();
+
+      // kullanici giris yaptiginda daha once kayitli oldugu odalara tekrar kaydi yapilir
+      await joinAndEmitMyRooms(socket);
+
+      socket.once('disconnect', async () => {
         var user = userController.getUser(socket.id);
-        sysContent.msg = user.nickname + ' sohbetten ayrıldı.';
         userController.removeUser(socket.id);
 
-        io.emit('chat message', sysContent);
+        systemContent.msg = user.nickname + ' sohbetten ayrıldı.';
+        io.emit('chat message', systemContent);
         console.log('Kullanici ayrildi. Socket id : ' + socket.id);
 
-        var users = userController.getAllUsers();
-        io.emit('onlineusers', { userList: [...users] });
+        // guncel online kullanici listesi gonderiliyor
+        emitOnlineUsers();
+
+        // guncel offline kullanici listesi gonderiliyor
+        await emitOfflineUsers();
       });
 
       socket.on('chat message', async (msgContent) => {
@@ -72,15 +96,7 @@ const listeners = (io) => {
 
           io.emit('chat message', content);
         } else {
-          var sysContent = {
-            nickname: '',
-            color: '#000',
-            system: true,
-            msg: '',
-          };
-
-          sysContent.msg = 'Hesap ile giriş yapmadın!';
-          io.to(socket.id).emit('chat message', sysContent);
+          errorAuthMessageHandler(socked.id);
         }
       });
 
@@ -101,7 +117,6 @@ const listeners = (io) => {
           };
           var isUser = await userController.isUser(msgContent.to);
           if (!isUser) {
-            console.log(msgContent.to);
             messageController.addRoomMessage(
               user.nickname,
               user.color,
@@ -111,11 +126,9 @@ const listeners = (io) => {
               msgContent.to,
               false
             );
-            console.log('girdi1');
+
             io.to(msgContent.to).emit('chat message', content);
           } else {
-            console.log('girdi2');
-            console.log(msgContent.to);
             messageController.addPrivateMessage(
               user.nickname,
               user.color,
@@ -133,15 +146,39 @@ const listeners = (io) => {
             io.to(socket.id).emit('chat message', content);
           }
         } else {
-          var sysContent = {
-            nickname: '',
-            color: '#000',
-            system: true,
-            msg: '',
+          errorAuthMessageHandler(socked.id);
+        }
+      });
+
+      socket.on('chat message offline', async (msgContent) => {
+        if (userController.serverAuthVerify(msgContent.token)) {
+          let user = userController.getUser(socket.id);
+          let content = {
+            nickname: user.nickname,
+            color: user.color,
+            avatar:
+              userController.avatars[user.nickname] === undefined
+                ? user.avatar
+                : userController.avatars[user.nickname],
+            system: false,
+            msg: msgContent.message,
+            to: msgContent.to,
+            read: true,
           };
 
-          sysContent.msg = 'Hesap ile giriş yapmadın!';
-          io.to(socket.id).emit('chat message', sysContent);
+          messageController.addPrivateMessage(
+            user.nickname,
+            user.color,
+            user.avatar,
+            false,
+            msgContent.message,
+            msgContent.to,
+            false
+          );
+
+          io.to(socket.id).emit('chat message', content);
+        } else {
+          errorAuthMessageHandler(socked.id);
         }
       });
     });
@@ -152,32 +189,16 @@ const listeners = (io) => {
 
         await userController.addRoom(content.room);
         await userController.addRoomToUser(socket.id, content.room);
-        let rooms = await userController.getRoomsOfUser(socket.id);
 
-        io.to(socket.id).emit('my room list', {
-          myRoomList: [...rooms],
-        });
+        await emitRoomListOfUser(socket.id);
 
-        let sysContent = {
-          nickname: '',
-          color: '#000',
-          system: true,
-          msg: content.nickname + ', ' + content.room + ' odasini kurdu.',
-          to: content.room,
-          read: false,
-        };
+        systemRoomContent.msg =
+          content.nickname + ', ' + content.room + ' odasini kurdu.';
+        systemRoomContent.to = content.room;
 
-        io.to(content.room).emit('chat message', sysContent);
+        io.to(content.room).emit('chat message', systemRoomContent);
       } else {
-        var sysContent = {
-          nickname: '',
-          color: '#000',
-          system: true,
-          msg: '',
-        };
-
-        sysContent.msg = 'Hesap ile giriş yapmadın!';
-        io.to(socket.id).emit('chat message', sysContent);
+        errorAuthMessageHandler(socked.id);
       }
     });
 
@@ -185,66 +206,70 @@ const listeners = (io) => {
       if (userController.serverAuthVerify(content.token)) {
         socket.join(content.room);
         await userController.addRoomToUser(socket.id, content.room);
-        let rooms = await userController.getRoomsOfUser(socket.id);
-        io.to(socket.id).emit('my room list', {
-          myRoomList: [...rooms],
-        });
 
-        let sysContent = {
-          nickname: '',
-          color: '#000',
-          system: true,
-          msg: content.nickname + ' odaya katildi.',
-          to: content.room,
-          read: false,
-        };
+        await emitRoomListOfUser(socket.id);
 
-        io.to(content.room).emit('chat message', sysContent);
+        systemRoomContent.msg = content.nickname + ' odaya katildi.';
+        systemRoomContent.to = content.room;
+        io.to(content.room).emit('chat message', systemRoomContent);
       } else {
-        var sysContent = {
-          nickname: '',
-          color: '#000',
-          system: true,
-          msg: '',
-        };
-
-        sysContent.msg = 'Hesap ile giriş yapmadın!';
-        io.to(socket.id).emit('chat message', sysContent);
+        errorAuthMessageHandler(socked.id);
       }
     });
 
     socket.on('delete user from room', async (content) => {
       if (userController.serverAuthVerify(content.token)) {
         await userController.removeRoomOfUser(socket.id, content.room);
-        let rooms = await userController.getRoomsOfUser(socket.id);
-        io.to(socket.id).emit('my room list', {
-          myRoomList: [...rooms],
-        });
+
+        await emitRoomListOfUser(socket.id);
 
         socket.leave(content.room);
-        let sysContent = {
-          nickname: '',
-          color: '#000',
-          system: true,
-          msg: content.nickname + ' odadan ayrildi!',
-          to: content.room,
-          read: false,
-        };
 
-        io.to(content.room).emit('chat message', sysContent);
+        systemRoomContent.msg = content.nickname + ' odadan ayrildi.';
+        systemRoomContent.to = content.room;
+
+        io.to(content.room).emit('chat message', systemRoomContent);
       } else {
-        var sysContent = {
-          nickname: '',
-          color: '#000',
-          system: true,
-          msg: '',
-        };
-
-        sysContent.msg = 'Hesap ile giriş yapmadın!';
-        io.to(socket.id).emit('chat message', sysContent);
+        errorAuthMessageHandler(socked.id);
       }
     });
   });
+};
+
+// online kullanici bilgisi sisteme bagli kullanicilara yayilir
+const emitOnlineUsers = () => {
+  let onlineUsers = userController.getOnlineUsers();
+  _io.emit('onlineusers', { userList: [...onlineUsers] });
+};
+
+// offline kullanici bilgisi sisteme bagli kullanicilara yayilir
+const emitOfflineUsers = async () => {
+  let oflineUsers = await userController.getOfflineUsers();
+  _io.emit('offlineusers', { userList: [...oflineUsers] });
+};
+
+// kullanicinin guncel oda listesini yayar
+const emitRoomListOfUser = async (socketId) => {
+  let roomList = await userController.getRoomsOfUser(socketId);
+  _io.to(socketId).emit('my room list', {
+    myRoomList: [...roomList],
+  });
+};
+
+// daha once katilinan odalara socket baglantisi yapar ve oda listesini yayar
+const joinAndEmitMyRooms = async (socket) => {
+  let roomList = await userController.getRoomsOfUser(socket.id);
+  roomList.forEach((roomName) => {
+    socket.join(roomName);
+  });
+
+  await emitRoomListOfUser(socket.id);
+};
+
+// kullanici tokeni onaylanmadiginda cagrilir hesap ile giris yapilmadi system mesaji gonderir.
+const errorAuthMessageHandler = (socketId) => {
+  systemContent.msg = 'Hesap ile giriş yapmadın!';
+  _io.to(socketId).emit('chat message', systemContent);
 };
 
 function getRandomColor() {
