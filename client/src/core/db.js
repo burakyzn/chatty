@@ -2,7 +2,7 @@ import firebase from 'firebase';
 let fire;
 
 if (process.env.NODE_ENV === 'production') {
-  fire = firebase.REACT_APP_initializeApp({
+  fire = firebase.initializeApp({
     apiKey: process.env.REACT_APP_FIREBASE_CL_API_KEY,
     authDomain: process.env.REACT_APP_FIREBASE_CL_AUTH_DOMAIN,
     projectId: process.env.REACT_APP_FIREBASE_CL_PROJECT_ID,
