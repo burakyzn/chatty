@@ -539,8 +539,6 @@ export default function MainScreen() {
           setErrorMessage('Lütfen giriş yapınız.');
         });
     } else if (offlineUsers.indexOf(selectedChat) !== -1) {
-      console.log('offline mesaj');
-      console.log(offlineUsers);
       sendOfflineMessageHandler();
     } else {
       sendRoomMessageHandler();
@@ -922,6 +920,7 @@ export default function MainScreen() {
               <ListItemText
                 onClick={() => {
                   setSelectedChat(item);
+                  getPreviousPrivateMessages(item);
                 }}
                 primary={item}
                 style={{ marginLeft: 10 }}
