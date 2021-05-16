@@ -1,140 +1,276 @@
+const userController = require('../controllers/user');
+const messageController = require('../controllers/message');
 
-const userController = require('../controllers/user'); 
+// genel sistem mesaji
+var systemContent = {
+  nickname: '',
+  color: '#000',
+  system: true,
+  msg: '', // mesaj olarak doldurulacak
+};
 
-const listeners = io => {
+// odalar icin kullanilan sistem mesaji
+var systemRoomContent = {
+  nickname: '',
+  color: '#000',
+  system: true,
+  msg: '', // mesaj olarak doldurulacak
+  to: '', // gidecek oda ismi olarak doldurulacak
+  read: false,
+};
+
+var _io;
+
+const listeners = (io) => {
+  _io = io;
+
   io.on('connection', (socket) => {
     console.log('Yeni kullanici giris yapti. Socket id : ' + socket.id);
-    
-    var sysContent = {
-      nickname : '',
-      color : '#000',
-      system : true,
-      msg : ''
-    }
-  
-    sysContent.msg = 'Chat sistemine hoşgeldin.';
-    io.to(socket.id).emit('chat message', sysContent);
 
-    socket.on('newuser', nickname => {
+    // sistem mesaji gonderiliyor
+    systemContent.msg = 'Chat sistemine hoşgeldin.';
+    io.to(socket.id).emit('chat message', systemContent);
+
+    socket.on('newuser', async (nickname) => {
       var user = {
-        "socketID" : socket.id,
-        "nickname" : nickname,
-        "color" : getRandomColor(),
-        "avatar" : null,
-        'rooms' : []
+        socketID: socket.id,
+        nickname: nickname,
+        color: getRandomColor(),
+        avatar: null,
+        rooms: [],
       };
 
       userController.addUser(user);
 
-      sysContent.msg = 'Kullanıcı adını ' + nickname + ' olarak belirledin.';
-      io.to(socket.id).emit('chat message', sysContent);
+      systemContent.msg = 'Kullanıcı adını ' + nickname + ' olarak belirledin.';
+      io.to(socket.id).emit('chat message', systemContent);
 
-      var users = userController.getAllUsers();
-      io.emit('onlineusers', {"userList" : [...users]});
+      // online kullanici bilgisi gonderiliyor
+      emitOnlineUsers();
 
-      socket.once('disconnect', ()=>{
+      // offline kullanici bilgisi gonderiliyor
+      await emitOfflineUsers();
+
+      // kullanici giris yaptiginda daha once kayitli oldugu odalara tekrar kaydi yapilir
+      await joinAndEmitMyRooms(socket);
+
+      socket.once('disconnect', async () => {
         var user = userController.getUser(socket.id);
-        sysContent.msg = user.nickname + ' sohbetten ayrıldı.';
         userController.removeUser(socket.id);
-        
-        io.emit('chat message', sysContent);
+
+        systemContent.msg = user.nickname + ' sohbetten ayrıldı.';
+        io.emit('chat message', systemContent);
         console.log('Kullanici ayrildi. Socket id : ' + socket.id);
 
-        var users = userController.getAllUsers();
-        io.emit('onlineusers', {"userList" : [...users]});
+        // guncel online kullanici listesi gonderiliyor
+        emitOnlineUsers();
+
+        // guncel offline kullanici listesi gonderiliyor
+        await emitOfflineUsers();
       });
-      
-      socket.on('chat message', (msgContent) => {
-        var user = userController.getUser(socket.id);
-        var content = {
-          'nickname' : user.nickname,
-          'color' : user.color,
-          'avatar' : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
-          'system' : false,
-          'msg' : msgContent.message,
-          'to' : msgContent.to,
-          'read' : false,
+
+      socket.on('chat message', async (msgContent) => {
+        if (userController.serverAuthVerify(msgContent.token)) {
+          var user = userController.getUser(socket.id);
+          var content = {
+            nickname: user.nickname,
+            color: user.color,
+            avatar:
+              userController.avatars[user.nickname] === undefined
+                ? user.avatar
+                : userController.avatars[user.nickname],
+            system: false,
+            msg: msgContent.message,
+            to: msgContent.to,
+            read: false,
+          };
+
+          messageController.addPublicMessage(
+            user.nickname,
+            user.color,
+            user.avatar,
+            false,
+            msgContent.message,
+            msgContent.to
+          );
+
+          io.emit('chat message', content);
+        } else {
+          errorAuthMessageHandler(socked.id);
         }
-        io.emit('chat message', content);
       });
 
-      socket.on('chat room message', (msgContent) => {
-        var user = userController.getUser(socket.id);
-        var content = {
-          'nickname' : user.nickname,
-          'color' : user.color,
-          'avatar' : userController.avatars[user.nickname] === undefined ? user.avatar : userController.avatars[user.nickname],
-          'system' : false,
-          'msg' : msgContent.message,
-          'to' : msgContent.to,
-          'read' : false
+      socket.on('chat room message', async (msgContent) => {
+        if (userController.serverAuthVerify(msgContent.token)) {
+          var user = userController.getUser(socket.id);
+          var content = {
+            nickname: user.nickname,
+            color: user.color,
+            avatar:
+              userController.avatars[user.nickname] === undefined
+                ? user.avatar
+                : userController.avatars[user.nickname],
+            system: false,
+            msg: msgContent.message,
+            to: msgContent.to,
+            read: false,
+          };
+          var isUser = await userController.isUser(msgContent.to);
+          if (!isUser) {
+            messageController.addRoomMessage(
+              user.nickname,
+              user.color,
+              user.avatar,
+              false,
+              msgContent.message,
+              msgContent.to,
+              false
+            );
+
+            io.to(msgContent.to).emit('chat message', content);
+          } else {
+            messageController.addPrivateMessage(
+              user.nickname,
+              user.color,
+              user.avatar,
+              false,
+              msgContent.message,
+              msgContent.to,
+              false
+            );
+
+            io.to(userController.getUserSocketID(msgContent.to)).emit(
+              'chat message',
+              content
+            );
+            io.to(socket.id).emit('chat message', content);
+          }
+        } else {
+          errorAuthMessageHandler(socked.id);
         }
-        io.to(msgContent.to).emit('chat message', content);
+      });
+
+      socket.on('chat message offline', async (msgContent) => {
+        if (userController.serverAuthVerify(msgContent.token)) {
+          let user = userController.getUser(socket.id);
+          let content = {
+            nickname: user.nickname,
+            color: user.color,
+            avatar:
+              userController.avatars[user.nickname] === undefined
+                ? user.avatar
+                : userController.avatars[user.nickname],
+            system: false,
+            msg: msgContent.message,
+            to: msgContent.to,
+            read: true,
+          };
+
+          messageController.addPrivateMessage(
+            user.nickname,
+            user.color,
+            user.avatar,
+            false,
+            msgContent.message,
+            msgContent.to,
+            false
+          );
+
+          io.to(socket.id).emit('chat message', content);
+        } else {
+          errorAuthMessageHandler(socked.id);
+        }
       });
     });
 
-    socket.on('create room', (content) => {
-      socket.join(content.room);
-      userController.addRoomToUser(socket.id, content.room);
-      userController.addRoom(content.room);
-      let rooms = userController.getRoomsOfUser(socket.id);
-      io.to(socket.id).emit('my room list', {
-        "myRoomList": [...rooms]
-      });
+    socket.on('create room', async (content) => {
+      if (userController.serverAuthVerify(content.token)) {
+        socket.join(content.room);
 
-      let sysContent = {
-        'nickname' : '',
-        'color' : '#000',
-        'system' : true,
-        'msg' : content.nickname + ', ' + content.room + ' odasini kurdu.',
-        'to' : content.room,
-        'read' : false
+        await userController.addRoom(content.room);
+        await userController.addRoomToUser(socket.id, content.room);
+
+        await emitRoomListOfUser(socket.id);
+
+        systemRoomContent.msg =
+          content.nickname + ', ' + content.room + ' odasini kurdu.';
+        systemRoomContent.to = content.room;
+
+        io.to(content.room).emit('chat message', systemRoomContent);
+      } else {
+        errorAuthMessageHandler(socked.id);
       }
-
-      io.to(content.room).emit('chat message', sysContent);
     });
 
-    socket.on('join room', (content) => {
-      socket.join(content.room);
-      userController.addRoomToUser(socket.id, content.room);
-      let rooms = userController.getRoomsOfUser(socket.id);
-      io.to(socket.id).emit('my room list', {
-        "myRoomList": [...rooms]
-      });
+    socket.on('join room', async (content) => {
+      if (userController.serverAuthVerify(content.token)) {
+        socket.join(content.room);
+        await userController.addRoomToUser(socket.id, content.room);
 
-      let sysContent = {
-        'nickname' : '',
-        'color' : '#000',
-        'system' : true,
-        'msg' : content.nickname + ' odaya katildi.',
-        'to' : content.room,
-        'read' : false
+        await emitRoomListOfUser(socket.id);
+
+        systemRoomContent.msg = content.nickname + ' odaya katildi.';
+        systemRoomContent.to = content.room;
+        io.to(content.room).emit('chat message', systemRoomContent);
+      } else {
+        errorAuthMessageHandler(socked.id);
       }
-
-      io.to(content.room).emit('chat message', sysContent);
     });
 
-    socket.on('delete user from room', (content) => {
-      userController.removeRoomOfUser(socket.id, content.room);
-      let rooms = userController.getRoomsOfUser(socket.id);
-      io.to(socket.id).emit('my room list', {
-        "myRoomList": [...rooms]
-      });
+    socket.on('delete user from room', async (content) => {
+      if (userController.serverAuthVerify(content.token)) {
+        await userController.removeRoomOfUser(socket.id, content.room);
 
-      socket.leave(content.room);
-      let sysContent = {
-        'nickname' : '',
-        'color' : '#000',
-        'system' : true,
-        'msg' : content.nickname + ' odadan ayrildi!',
-        'to' : content.room,
-        'read' : false
+        await emitRoomListOfUser(socket.id);
+
+        socket.leave(content.room);
+
+        systemRoomContent.msg = content.nickname + ' odadan ayrildi.';
+        systemRoomContent.to = content.room;
+
+        io.to(content.room).emit('chat message', systemRoomContent);
+      } else {
+        errorAuthMessageHandler(socked.id);
       }
-
-      io.to(content.room).emit('chat message', sysContent);
     });
   });
-}
+};
+
+// online kullanici bilgisi sisteme bagli kullanicilara yayilir
+const emitOnlineUsers = () => {
+  let onlineUsers = userController.getOnlineUsers();
+  _io.emit('onlineusers', { userList: [...onlineUsers] });
+};
+
+// offline kullanici bilgisi sisteme bagli kullanicilara yayilir
+const emitOfflineUsers = async () => {
+  let oflineUsers = await userController.getOfflineUsers();
+  _io.emit('offlineusers', { userList: [...oflineUsers] });
+};
+
+// kullanicinin guncel oda listesini yayar
+const emitRoomListOfUser = async (socketId) => {
+  let roomList = await userController.getRoomsOfUser(socketId);
+  _io.to(socketId).emit('my room list', {
+    myRoomList: [...roomList],
+  });
+};
+
+// daha once katilinan odalara socket baglantisi yapar ve oda listesini yayar
+const joinAndEmitMyRooms = async (socket) => {
+  let roomList = await userController.getRoomsOfUser(socket.id);
+  roomList.forEach((roomName) => {
+    socket.join(roomName);
+  });
+
+  await emitRoomListOfUser(socket.id);
+};
+
+// kullanici tokeni onaylanmadiginda cagrilir hesap ile giris yapilmadi system mesaji gonderir.
+const errorAuthMessageHandler = (socketId) => {
+  systemContent.msg = 'Hesap ile giriş yapmadın!';
+  _io.to(socketId).emit('chat message', systemContent);
+};
 
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
@@ -146,5 +282,5 @@ function getRandomColor() {
 }
 
 module.exports = {
-  listeners
+  listeners,
 };
