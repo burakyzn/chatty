@@ -91,8 +91,23 @@ const serverAuthVerify = async (token) => {
     });
 };
 
-const getAllUsers = () => {
+const getOnlineUsers = () => {
   return users;
+};
+
+// firestore user listesini ceker ve online olan kullanicilari ayristirir
+// geriye offline kullanicilari dondurur
+const getOfflineUsers = async () => {
+  let usersCollection = await userRef.get();
+  let userList = [];
+
+  usersCollection.forEach((docUser) => {
+    if (users.findIndex((x) => x.nickname === docUser.id) === -1) {
+      userList.push(docUser.id);
+    }
+  });
+
+  return userList;
 };
 
 const getUser = (socketID) => {
@@ -194,12 +209,13 @@ const isUser = async (client) => {
 
 module.exports = {
   authVerify,
+  getOnlineUsers,
   serverAuthVerify,
   register,
   setAvatar,
   avatars,
   getUser,
-  getAllUsers,
+  getOfflineUsers,
   removeUser,
   removeRoomOfUser,
   addUser,
