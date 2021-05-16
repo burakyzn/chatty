@@ -109,6 +109,7 @@ export default function MainScreen() {
   const theme = useTheme();
   const [openDrawer, setOpenDrawer] = React.useState(true);
   const [onlineUsers, setOnlineUsers] = React.useState([]);
+  const [offlineUsers, setOfflineUsers] = React.useState([]);
   const [message, setMessage] = React.useState('');
   const [allMessage, setAllMessage] = React.useState([]);
 
@@ -151,10 +152,12 @@ export default function MainScreen() {
   React.useEffect(() => {
     socket.on('onlineusers', (data) => {
       setOnlineUsers(data.userList);
+    });
+  }, []);
 
-      data.userList.forEach((user) => {
-        getPreviousPrivateMessages(user.nickname);
-      });
+  React.useEffect(() => {
+    socket.on('offlineusers', (data) => {
+      setOfflineUsers(data.userList);
     });
   }, []);
 
@@ -479,6 +482,25 @@ export default function MainScreen() {
     }
   };
 
+  const sendOfflineMessageHandler = () => {
+    db.auth()
+      .currentUser.getIdToken()
+      .then(function (idToken) {
+        let content = {
+          to: selectedChat,
+          message: message,
+          token: idToken,
+        };
+        socket.emit('chat message offline', content);
+        setMessage('');
+      })
+      .catch(function (error) {
+        setOpenLoginModal(true);
+        setIsAlertOpen(true);
+        setErrorMessage('Lütfen giriş yapınız.');
+      });
+  };
+
   const sendRoomMessageHandler = () => {
     db.auth()
       .currentUser.getIdToken()
@@ -516,6 +538,10 @@ export default function MainScreen() {
           setIsAlertOpen(true);
           setErrorMessage('Lütfen giriş yapınız.');
         });
+    } else if (offlineUsers.indexOf(selectedChat) !== -1) {
+      console.log('offline mesaj');
+      console.log(offlineUsers);
+      sendOfflineMessageHandler();
     } else {
       sendRoomMessageHandler();
     }
@@ -587,18 +613,27 @@ export default function MainScreen() {
         p_to: to,
       },
     }).then((result) => {
+      let _data = result.data;
+
       if (
-        result.data.messageList.length > 0 &&
-        getPrivateMessage.indexOf(result.data.messageId) === -1
+        _data.messageList.length > 0 &&
+        getPrivateMessage.indexOf(_data.messageId) === -1
       ) {
         setGetPrivateMessage((getPrivateMessage) => [
           ...getPrivateMessage,
-          result.data.messageId,
+          _data.messageId,
         ]);
-        setAllMessage((allMessage) => [
-          ...allMessage,
-          ...result.data.messageList,
-        ]);
+
+        let _allMessage = allMessage.filter((elem) => {
+          return (
+            elem.nickname !== nickname &&
+            elem.to !== to &&
+            elem.nickname !== to &&
+            elem.to !== nickname
+          );
+        });
+
+        setAllMessage(() => [..._data.messageList, ..._allMessage]);
       }
     });
   };
@@ -609,18 +644,27 @@ export default function MainScreen() {
         p_room_name: room_name,
       },
     }).then((result) => {
+      let _data = result.data;
+
       if (
-        result.data.messageList.length > 0 &&
-        getPrivateMessage.indexOf(result.data.messageId) === -1
+        _data.messageList.length > 0 &&
+        getPrivateMessage.indexOf(_data.messageId) === -1
       ) {
         setGetPrivateMessage((getPrivateMessage) => [
           ...getPrivateMessage,
-          result.data.messageId,
+          _data.messageId,
         ]);
-        setAllMessage((allMessage) => [
-          ...allMessage,
-          ...result.data.messageList,
-        ]);
+
+        let _allMessage = allMessage.filter((elem) => {
+          return (
+            elem.nickname !== nickname &&
+            elem.to !== room_name &&
+            elem.nickname !== room_name &&
+            elem.to !== nickname
+          );
+        });
+
+        setAllMessage(() => [..._data.messageList, ..._allMessage]);
       }
     });
   };
@@ -849,6 +893,7 @@ export default function MainScreen() {
                   }
 
                   setSelectedChat(item.nickname);
+                  getPreviousPrivateMessages(item.nickname);
                 }
               }}
             >
@@ -866,6 +911,21 @@ export default function MainScreen() {
                   style={{ marginLeft: 10 }}
                 />
               </Badge>
+            </ListItem>
+          ))}
+          {offlineUsers.map((item, index) => (
+            <ListItem button key={index}>
+              <Icon
+                className="fas fa-circle"
+                style={{ color: colors.grey[500] }}
+              />
+              <ListItemText
+                onClick={() => {
+                  setSelectedChat(item);
+                }}
+                primary={item}
+                style={{ marginLeft: 10 }}
+              />
             </ListItem>
           ))}
         </List>
