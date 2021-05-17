@@ -691,19 +691,32 @@ export default function MainScreen() {
               {selectedChat === 'public' ? 'Genel Chat' : selectedChat}
             </Typography>
           </Grid>
-          {selectedChat === 'public' ? null : (
-            <Grid container justify="flex-end">
-              <Button
-                variant="contained"
-                color="secondary"
-                component="span"
-                style={{ margin: 10 }}
-                onClick={removeRoomOfUser}
-              >
-                Odadan Ayrıl
-              </Button>
-            </Grid>
-          )}
+
+          {myRooms.map((content, index) => (
+            <List disablePadding style={{ width: '100%' }}>
+              {content === 'public' ? null : (
+                <ListItem key={index}>
+                  {(() => {
+                    if (content === selectedChat) {
+                      return (
+                        <Grid container justify="flex-end">
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            component="span"
+                            style={{ margin: 10 }}
+                            onClick={removeRoomOfUser}
+                          >
+                            Odadan Ayrıl
+                          </Button>
+                        </Grid>
+                      );
+                    }
+                  })()}
+                </ListItem>
+              )}
+            </List>
+          ))}
         </Toolbar>
       </AppBar>
       <Drawer
