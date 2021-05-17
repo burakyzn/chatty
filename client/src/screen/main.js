@@ -692,31 +692,21 @@ export default function MainScreen() {
             </Typography>
           </Grid>
 
-          {myRooms.map((content, index) => (
-            <List disablePadding style={{ width: '100%' }}>
-              {content === 'public' ? null : (
-                <ListItem key={index}>
-                  {(() => {
-                    if (content === selectedChat) {
-                      return (
-                        <Grid container justify="flex-end">
-                          <Button
-                            variant="contained"
-                            color="secondary"
-                            component="span"
-                            style={{ margin: 10 }}
-                            onClick={removeRoomOfUser}
-                          >
-                            Odadan Ayrıl
-                          </Button>
-                        </Grid>
-                      );
-                    }
-                  })()}
-                </ListItem>
-              )}
-            </List>
-          ))}
+          {myRooms.map((content, index) => {
+            return content === selectedChat ? (
+              <Grid container justify="flex-end">
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  component="span"
+                  style={{ margin: 10 }}
+                  onClick={removeRoomOfUser}
+                >
+                  Odadan Ayrıl
+                </Button>
+              </Grid>
+            ) : null;
+          })}
         </Toolbar>
       </AppBar>
       <Drawer
@@ -1223,23 +1213,25 @@ export default function MainScreen() {
         <DialogContent>
           <DialogContentText>
             <List>
-              {rooms.map((text, index) => (
-                <ListItem>
-                  <Button
-                    key={text}
-                    variant="contained"
-                    color="primary"
-                    component="span"
-                    style={{ marginRight: 10 }}
-                    onClick={() => {
-                      handleRoomsDialogButton(text);
-                    }}
-                  >
-                    +
-                  </Button>
-                  <ListItemText primary={text} />
-                </ListItem>
-              ))}
+              {rooms.map((text, index) => {
+                return text === 'public' ? null : (
+                  <ListItem>
+                    <Button
+                      key={text}
+                      variant="contained"
+                      color="primary"
+                      component="span"
+                      style={{ marginRight: 10 }}
+                      onClick={() => {
+                        handleRoomsDialogButton(text);
+                      }}
+                    >
+                      +
+                    </Button>
+                    <ListItemText primary={text} />
+                  </ListItem>
+                );
+              })}
             </List>
           </DialogContentText>
         </DialogContent>
