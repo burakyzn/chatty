@@ -24,6 +24,7 @@ import {
   Avatar,
   colors,
   Grid,
+  Container,
 } from '@material-ui/core';
 import { Menu, ChevronLeft, ChevronRight } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -1316,6 +1317,7 @@ export default function MainScreen() {
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             onKeyDown={sendMessageHandlerEnter}
+            maxLength={50}
           />
           <button type="button" onClick={sendMessageHandler} id="submit">
             Gönder
