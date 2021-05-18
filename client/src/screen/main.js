@@ -1186,6 +1186,7 @@ export default function MainScreen() {
                   type="file"
                   onChange={onAvatarChange}
                   style={{ display: 'none' }}
+                  accept="image/png, image/gif, image/jpg, image/jpeg"
                 />
                 <label htmlFor="contained-button-file">
                   <Button variant="contained" color="primary" component="span">
