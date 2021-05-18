@@ -1211,13 +1211,6 @@ export default function MainScreen() {
               <Grid item xs={12}>
                 {avatar != null ? <p>{avatar.name}</p> : null}
               </Grid>
-              <Grid item xs={12}>
-                {process.env.NODE_ENV === 'production' ? (
-                  <p>
-                    Canlı ortamda profil fotografi yüklenmesi engellenmiştir.
-                  </p>
-                ) : null}
-              </Grid>
             </Grid>
           </form>
         </DialogContent>
