@@ -24,6 +24,7 @@ import {
   Avatar,
   colors,
   Grid,
+  Container,
 } from '@material-ui/core';
 import { Menu, ChevronLeft, ChevronRight } from '@material-ui/icons';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
@@ -175,8 +176,9 @@ export default function MainScreen() {
 
   React.useEffect(() => {
     axios(BASE_API + GET_PUBLIC_MESSAGE_LIST).then((result) => {
-      if (result.data.messageList.length > 0)
+      if (result.data.messageList.length > 0) {
         setAllMessage(result.data.messageList);
+      }
     });
   }, []);
 
@@ -256,7 +258,37 @@ export default function MainScreen() {
             axios.post(BASE_API + AUTH_VERIFY, data, config).then((result) => {
               if (result.data.result === true) {
                 socket.emit('newuser', nick);
-                setOpenLoginModal(false);
+
+                db.firestore()
+                  .collection('users')
+                  .doc(nick)
+                  .get()
+                  .then((doc) => {
+                    if (doc.exists) {
+                      let _content = {
+                        avatar: doc.data().avatarURL,
+                        nickname: nick,
+                      };
+
+                      const _config = {
+                        headers: {
+                          'content-type': 'application/json',
+                        },
+                      };
+                      axios
+                        .post(BASE_API + SET_AVATAR_IMG, _content, _config)
+                        .then((result) => {})
+                        .catch((error) => {});
+                      setAvatarURL(doc.data().avatarURL);
+
+                      setOpenLoginModal(false);
+                    } else {
+                      console.log('No such document!');
+                    }
+                  })
+                  .catch((error) => {
+                    console.log('Error getting document:', error);
+                  });
               } else {
                 setIsAlertOpen(true);
                 setErrorMessage('Doğrulanmamış kullanıcı. Lütfen giriş yapın.');
@@ -447,31 +479,53 @@ export default function MainScreen() {
     setAvatar(event.target.files[0]);
   };
 
-  const uploadAvatarImage = (event) => {
+  const uploadAvatarImage = async (event) => {
     event.preventDefault();
-    if (process.env.NODE_ENV === 'production') {
-      console.log('Canli ortam profil resmi yuklenememektedir.');
-      return;
-    } else {
-      const formData = new FormData();
-      formData.append('avatar', avatar);
-      formData.append('nickname', nickname);
-      const config = {
-        headers: {
-          'content-type': 'multipart/form-data',
-        },
-      };
-      axios
-        .post(BASE_API + SET_AVATAR_IMG, formData, config)
-        .then((result) => {
-          if (result.data.result === 'null') {
-            console.log('basarisiz');
-          } else {
-            setAvatarURL(result.data.result);
-            setOpenAvatarModal(false);
-          }
+    var user = db.auth().currentUser;
+
+    if (user) {
+      var letters = '0123456789ABCDEF';
+      var rnd = '';
+      for (var i = 0; i < 6; i++) {
+        rnd += letters[Math.floor(Math.random() * 16)];
+      }
+
+      let _file = 'images/' + rnd + avatar.name;
+
+      await db.storage().ref(_file).put(avatar);
+
+      db.storage()
+        .ref(_file)
+        .getDownloadURL()
+        .then((url) => {
+          setAvatarURL(url);
+
+          let content = {
+            avatar: url,
+            nickname: nickname,
+          };
+
+          const config = {
+            headers: {
+              'content-type': 'application/json',
+            },
+          };
+          axios
+            .post(BASE_API + SET_AVATAR_IMG, content, config)
+            .then((result) => {
+              db.firestore().collection('users').doc(nickname).set(
+                {
+                  avatarURL: url,
+                },
+                { merge: true }
+              );
+
+              setOpenAvatarModal(false);
+            })
+            .catch((error) => {});
         })
-        .catch((error) => {});
+        .catch((e) => console.log('getting downloadURL of image error => ', e));
+    } else {
     }
   };
 
@@ -691,19 +745,22 @@ export default function MainScreen() {
               {selectedChat === 'public' ? 'Genel Chat' : selectedChat}
             </Typography>
           </Grid>
-          {selectedChat === 'public' ? null : (
-            <Grid container justify="flex-end">
-              <Button
-                variant="contained"
-                color="secondary"
-                component="span"
-                style={{ margin: 10 }}
-                onClick={removeRoomOfUser}
-              >
-                Odadan Ayrıl
-              </Button>
-            </Grid>
-          )}
+
+          {myRooms.map((content, index) => {
+            return content === selectedChat ? (
+              <Grid container justify="flex-end">
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  component="span"
+                  style={{ margin: 10 }}
+                  onClick={removeRoomOfUser}
+                >
+                  Odadan Ayrıl
+                </Button>
+              </Grid>
+            ) : null;
+          })}
         </Toolbar>
       </AppBar>
       <Drawer
@@ -1210,23 +1267,25 @@ export default function MainScreen() {
         <DialogContent>
           <DialogContentText>
             <List>
-              {rooms.map((text, index) => (
-                <ListItem>
-                  <Button
-                    key={text}
-                    variant="contained"
-                    color="primary"
-                    component="span"
-                    style={{ marginRight: 10 }}
-                    onClick={() => {
-                      handleRoomsDialogButton(text);
-                    }}
-                  >
-                    +
-                  </Button>
-                  <ListItemText primary={text} />
-                </ListItem>
-              ))}
+              {rooms.map((text, index) => {
+                return text === 'public' ? null : (
+                  <ListItem>
+                    <Button
+                      key={text}
+                      variant="contained"
+                      color="primary"
+                      component="span"
+                      style={{ marginRight: 10 }}
+                      onClick={() => {
+                        handleRoomsDialogButton(text);
+                      }}
+                    >
+                      +
+                    </Button>
+                    <ListItemText primary={text} />
+                  </ListItem>
+                );
+              })}
             </List>
           </DialogContentText>
         </DialogContent>
@@ -1311,6 +1370,7 @@ export default function MainScreen() {
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             onKeyDown={sendMessageHandlerEnter}
+            maxLength={50}
           />
           <button type="button" onClick={sendMessageHandler} id="submit">
             Gönder

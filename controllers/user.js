@@ -20,23 +20,15 @@ const upload = multer({
 }).single('avatar');
 
 const setAvatar = (req, res, next) => {
-  upload(req, res, (err) => {
-    let _nickname = req.body['nickname'];
+  let _nickname = req.body['nickname'];
+  let _avatar = req.body['avatar'];
 
-    if (process.env.NODE_ENV === 'production') {
-      //avatars[_nickname] = process.env.APP_NAME + '/uploads/' + req.file.filename;
-      return;
-    } else {
-      avatars[_nickname] = 'http://localhost:5000/uploads/' + req.file.filename;
-    }
+  if (_avatar !== null) {
+    avatars[_nickname] = _avatar;
+  }
 
-    if (!err) {
-      res.json({
-        result: 'http://localhost:5000/uploads/' + req.file.filename,
-      });
-    } else {
-      res.json({ result: 'error' });
-    }
+  res.json({
+    result: true,
   });
 };
 
@@ -56,6 +48,7 @@ const register = async (req, res, next) => {
       first: first,
       last: last,
       born: born,
+      avatarURL: null,
       rooms: [],
     });
 

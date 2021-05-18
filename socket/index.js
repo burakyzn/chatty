@@ -88,7 +88,9 @@ const listeners = (io) => {
           messageController.addPublicMessage(
             user.nickname,
             user.color,
-            user.avatar,
+            userController.avatars[user.nickname] === undefined
+              ? user.avatar
+              : userController.avatars[user.nickname],
             false,
             msgContent.message,
             msgContent.to
@@ -120,7 +122,9 @@ const listeners = (io) => {
             messageController.addRoomMessage(
               user.nickname,
               user.color,
-              user.avatar,
+              userController.avatars[user.nickname] === undefined
+                ? user.avatar
+                : userController.avatars[user.nickname],
               false,
               msgContent.message,
               msgContent.to,
@@ -132,7 +136,9 @@ const listeners = (io) => {
             messageController.addPrivateMessage(
               user.nickname,
               user.color,
-              user.avatar,
+              userController.avatars[user.nickname] === undefined
+                ? user.avatar
+                : userController.avatars[user.nickname],
               false,
               msgContent.message,
               msgContent.to,

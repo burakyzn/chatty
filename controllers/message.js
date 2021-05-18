@@ -1,3 +1,4 @@
+const { plugin } = require('mongoose');
 const db = require('../core/db');
 const publicMessageRef = db
   .firestore()
@@ -9,12 +10,15 @@ const privateMessagesRef = db.firestore().collection('privateMessages');
 // GET
 
 const getPublicMessageList = async (req, res, next) => {
-  let _doc = await publicMessageRef.get();
-  if (!_doc.exists) {
-    res.json({ messageList: [] });
-  } else {
-    res.json({ messageList: _doc.data().messageList });
-  }
+  try {
+    let _doc = await publicMessageRef.get();
+
+    if (!_doc.exists) {
+      res.json({ messageList: [] });
+    } else {
+      res.json({ messageList: _doc.data().messageList });
+    }
+  } catch (e) {}
 };
 
 const getPrivateMessageList = async (req, res, next) => {
