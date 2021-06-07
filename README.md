@@ -15,10 +15,15 @@ Install required packages from npm
 > cd client
 > npm install
 ```
-Go to your firebase account and download serviceAccountKey.json file from Project Settings -> Service Account -> Firebase SDK Admin menu.
-The downloaded file should be placed next to db.js.
 
-![image](https://user-images.githubusercontent.com/44683436/118120908-50472300-b3f9-11eb-834a-2c2f90c45879.png)
+Go to your firebase setting page and copy firebaseConfig from Config section. Create a file named serviceAccountKey.js and paste this copied code into it. The file should be placed in client>src>core.
+
+![image](https://user-images.githubusercontent.com/44683436/121013663-cdb84600-c7a1-11eb-9e5c-616a0b19995d.png)
+
+Download serviceAccountKey.json file from Project Settings -> Service Account -> Firebase SDK Admin menu.
+The downloaded file should be placed in core folder.
+
+![image](https://user-images.githubusercontent.com/44683436/121013806-fcceb780-c7a1-11eb-9882-56f226b76357.png)
 
 # 💻 Run
 
