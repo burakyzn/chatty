@@ -1,0 +1,15 @@
+.chat-area{
+  width: calc(100% - 230px);
+  height: calc(100% - 155px);
+  margin-left: 115px; 
+  margin-right: 115px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none; 
+  margin-bottom: 20px;;
+}
+
+.chat-area::-webkit-scrollbar { 
+  display: none;
+}
