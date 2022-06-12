@@ -1,0 +1,5 @@
+.sidebar-header{
+  flex:1;
+  display: flex;
+  height: 55px;
+}

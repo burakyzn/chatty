@@ -1,0 +1,11 @@
+.menu-button{
+  flex:1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-button__icon{
+  font-size: 25px!important;
+  padding: 8px;
+}

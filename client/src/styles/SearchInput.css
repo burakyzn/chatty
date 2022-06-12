@@ -1,0 +1,8 @@
+.search-input{
+  border: 0px;
+  background-color: inherit;
+  outline: none;
+  margin-left: 5px;
+  margin-right: 20px;
+  width: 100%;
+}
