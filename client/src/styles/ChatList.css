@@ -9,3 +9,7 @@
 .chat-list::-webkit-scrollbar { 
   display: none;
 }
+
+.chat-list__card{
+  width: 100%;
+}

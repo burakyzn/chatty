@@ -85,18 +85,19 @@ const serverAuthVerify = async (token) => {
 };
 
 const getOnlineUsers = () => {
-  return users;
+  return users.map(user => (
+    {socketID: user.socketID, nickname: user.nickname, avatar: user.avatar}
+  ));
 };
 
-// firestore user listesini ceker ve online olan kullanicilari ayristirir
-// geriye offline kullanicilari dondurur
 const getOfflineUsers = async () => {
   let usersCollection = await userRef.get();
   let userList = [];
 
   usersCollection.forEach((docUser) => {
     if (users.findIndex((x) => x.nickname === docUser.id) === -1) {
-      userList.push(docUser.id);
+      let user = docUser.data();
+      userList.push({nickname: user.nickname, avatar: user.avatarURL});
     }
   });
 

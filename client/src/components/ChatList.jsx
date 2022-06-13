@@ -1,52 +1,117 @@
-import { useState, useEffect, useContext } from "react";
+import { useEffect, useContext } from "react";
 import { SocketContext } from "../contexts/socketContext";
-import { Avatar } from "@mui/material";
 import ChatCard from "./ChatCard";
+import { ButtonBase } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addOfflineUsers,
+  addOnlineUsers,
+  onlineUserSelector,
+  offlineUserSelector,
+} from "../features/sidebarSlice";
+import {
+  changeSelectedAvatar,
+  changeSelectedChat,
+  changeNickname,
+  nicknameSelector,
+} from "../features/chatSlice";
 import "../styles/ChatList.css";
 
 export default function ChatList() {
-  const [onlineUsers, setOnlineUsers] = useState([]);
-  const [offlineUsers, setOfflineUsers] = useState([]);
+  const onlineUsers = useSelector(onlineUserSelector);
+  const offlineUsers = useSelector(offlineUserSelector);
+  const nickname = useSelector(nicknameSelector);
+  const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
 
   useEffect(() => {
-    socket.on("online-users", (data) => {
-      setOnlineUsers(data.userList);
+    socket.on("online-users", (userList) => {
+      let users = userList.map((user) => ({ ...user, visible: true }));
+      dispatch(addOnlineUsers(users));
     });
 
     return () => {
       socket.off("online-users");
     };
-  }, []);
+  }, [socket, dispatch]);
 
   useEffect(() => {
-    socket.on("offline-users", (data) => {
-      setOfflineUsers(data.userList);
+    socket.on("offline-users", (userList) => {
+      console.log("userlist", userList);
+      let users = userList.map((user) => ({ ...user, visible: true }));
+      dispatch(addOfflineUsers(users));
     });
 
     return () => {
       socket.off("offline-users");
     };
-  }, []);
+  }, [socket, dispatch]);
+
+  const handleChangeSelectedChat = (chatName, avatar) => {
+    dispatch(changeSelectedChat(chatName));
+    dispatch(changeSelectedAvatar(avatar));
+  };
+
+  const handleChangeNickname = (e) => {
+    dispatch(changeNickname(e.target.value));
+  };
+
+  const handleFakeLogin = () => {
+    socket.emit("new-user", nickname);
+  };
 
   return (
     <div className="chat-list">
-      <ChatCard text="Public" hiddenCircle />
-      {onlineUsers.map((onlineUser) => (
-        <ChatCard
-          key={onlineUser.socketID}
-          text={onlineUser.nickname}
-          avatarSrc="https://randomuser.me/api/portraits/men/22.jpg"
-          online
-        />
-      ))}
-      {offlineUsers.map((offlineUser, index) => (
-        <ChatCard
-          key={index}
-          text={offlineUser.nickname}
-          avatarSrc={offlineUser.avatarURL}
-        />
-      ))}
+      <ButtonBase
+        className="chat-list__card"
+        onClick={() => handleChangeSelectedChat("Public")}
+      >
+        <ChatCard text="Public" hiddenCircle />
+      </ButtonBase>
+      {onlineUsers.map(
+        (onlineUser) =>
+          onlineUser.visible && (
+            <ButtonBase
+              key={onlineUser.socketID}
+              className="chat-list__card"
+              onClick={() =>
+                handleChangeSelectedChat(
+                  onlineUser.nickname,
+                  "https://randomuser.me/api/portraits/men/22.jpg"
+                )
+              }
+            >
+              <ChatCard
+                text={onlineUser.nickname}
+                avatarSrc="https://randomuser.me/api/portraits/men/22.jpg"
+                online
+              />
+            </ButtonBase>
+          )
+      )}
+      {offlineUsers.map(
+        (offlineUser, index) =>
+          offlineUser.visible && (
+            <ButtonBase
+              key={index}
+              className="chat-list__card"
+              onClick={() =>
+                handleChangeSelectedChat(
+                  offlineUser.nickname,
+                  offlineUser.avatar
+                )
+              }
+            >
+              <ChatCard
+                text={offlineUser.nickname}
+                avatarSrc={offlineUser.avatar}
+              />
+            </ButtonBase>
+          )
+      )}
+
+      <input type="text" onChange={(e) => handleChangeNickname(e)} />
+      <button onClick={handleFakeLogin}>Login!</button>
     </div>
   );
 }
