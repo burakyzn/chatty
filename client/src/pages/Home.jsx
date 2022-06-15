@@ -5,7 +5,7 @@ import ChatInputBox from "../components/ChatInputBox";
 import ChatArea from "../components/ChatArea";
 import "../styles/Home.css";
 
-export default function Home() {
+function Home() {
   return (
     <div className="home">
       <div className="home__sidebar">
@@ -20,3 +20,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home;
