@@ -32,32 +32,36 @@ const setAvatar = (req, res, next) => {
   });
 };
 
-const register = async (req, res, next) => {
+/////////
+const register = async (req, res) => {
   let email = req.body['email'];
   let nickname = req.body['nickname'];
-  let first = req.body['first'];
-  let last = req.body['last'];
-  let born = req.body['born'];
 
-  const usersRef = db.firestore().collection('users');
-  const snapshot = await usersRef.where('nickname', '==', nickname).get();
-  if (snapshot.empty) {
-    db.firestore().collection('users').doc(nickname).set({
-      email: email,
-      nickname: nickname,
-      first: first,
-      last: last,
-      born: born,
-      avatarURL: null,
-      rooms: [],
-    });
-
-    console.log('Yeni kullanici kaydi yapildi. Kullanici adi : ' + nickname);
-    res.json({ result: true });
-  } else {
-    res.json({ result: false });
+  let userInstance = await userRef.where('nickname', "==", nickname).get();
+  if(!userInstance.empty){
+    res.json({ success: false, code: "duplicated-nickname", message: "Nickname is already used!" });
+    return;
   }
+
+  userRef.doc(nickname).set({
+    email: email,
+    nickname: nickname,
+    avatarURL: null,
+    rooms: [],
+    status: false
+  });
+
+  db.auth()
+    .getUserByEmail(email)
+    .then(user => {
+      db.auth().updateUser(user.uid, {
+        displayName : nickname
+      })
+    })
+
+  res.json({success: true, message: "The user has been created."});
 };
+/////////
 
 const authVerify = async (req, res, next) => {
   let nickname = req.body['nickname'];
@@ -202,10 +206,10 @@ const isUser = async (client) => {
 };
 
 module.exports = {
+  register,
   authVerify,
   getOnlineUsers,
   serverAuthVerify,
-  register,
   setAvatar,
   avatars,
   getUser,
