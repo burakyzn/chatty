@@ -12,15 +12,12 @@ import {
 import {
   changeSelectedAvatar,
   changeSelectedChat,
-  changeNickname,
-  nicknameSelector,
 } from "../features/chatSlice";
 import "../styles/ChatList.css";
 
 export default function ChatList() {
   const onlineUsers = useSelector(onlineUserSelector);
   const offlineUsers = useSelector(offlineUserSelector);
-  const nickname = useSelector(nicknameSelector);
   const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
 
@@ -37,7 +34,6 @@ export default function ChatList() {
 
   useEffect(() => {
     socket.on("offline-users", (userList) => {
-      console.log("userlist", userList);
       let users = userList.map((user) => ({ ...user, visible: true }));
       dispatch(addOfflineUsers(users));
     });
@@ -50,14 +46,6 @@ export default function ChatList() {
   const handleChangeSelectedChat = (chatName, avatar) => {
     dispatch(changeSelectedChat(chatName));
     dispatch(changeSelectedAvatar(avatar));
-  };
-
-  const handleChangeNickname = (e) => {
-    dispatch(changeNickname(e.target.value));
-  };
-
-  const handleFakeLogin = () => {
-    socket.emit("new-user", nickname);
   };
 
   return (
@@ -109,9 +97,6 @@ export default function ChatList() {
             </ButtonBase>
           )
       )}
-
-      <input type="text" onChange={(e) => handleChangeNickname(e)} />
-      <button onClick={handleFakeLogin}>Login!</button>
     </div>
   );
 }

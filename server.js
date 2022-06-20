@@ -4,10 +4,10 @@ const app = express();
 var bodyParser = require('body-parser');
 const http = require('http');
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 const cors = require('cors');
-const routes = require('./routes/index');
-const socket = require('./socket/index');
+const routes = require('./routes');
+const socket = require('./socket');
 const io = require('socket.io')(server, {
   cors: {
     origin: process.env.APP_NAME || 'http://localhost:3000',
@@ -31,6 +31,5 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use('/', routes);
 
-socket.listeners(io);
-
+socket.listen(io);
 server.listen(PORT, console.log(`Server is starting at ${PORT}`));
