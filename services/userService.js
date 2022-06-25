@@ -34,10 +34,7 @@ const getNicknameByToken = (token) => {
   return db.auth()
     .verifyIdToken(token)
     .then((decodedToken) => decodedToken.name)
-    .catch((error) => {
-      console.error(error);
-      return "";
-    });
+    .catch(() => {});
 }
 
 const saveUserToDatabase = async (email, nickname) => {

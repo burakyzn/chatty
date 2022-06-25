@@ -6,7 +6,7 @@ module.exports = (io, socket) => {
 
   const newUser = async (token) => {
     let verifiedNickname = await userService.getNicknameByToken(token);
-    if(!verifiedNickname) emitters.newUserError();
+    if(!verifiedNickname) return emitters.newUserError();
 
     var user = {
       socketID: socket.id,

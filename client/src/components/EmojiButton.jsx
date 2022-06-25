@@ -1,17 +1,28 @@
-import { IconButton } from "@mui/material";
+import { useContext } from "react";
+import Popup from "reactjs-popup";
+import Picker from "emoji-picker-react";
 import { default as EmojiIcon } from "@mui/icons-material/InsertEmoticon";
+import { MessageContext } from "../contexts/messageContext";
 import "../styles/EmojiButton.css";
 
 export default function EmojiButton() {
+  const { setMessage } = useContext(MessageContext);
+
+  const onEmojiClick = (event, emojiObject) => {
+    setMessage((prevMessage) => prevMessage + emojiObject.emoji);
+  };
+
   return (
-    <IconButton
-      color="inherit"
-      onClick={() => {
-        alert("open emoji menu!");
-      }}
-      className="emoji-button"
+    <Popup
+      trigger={<EmojiIcon className="emoji-button" />}
+      position="top center"
+      on="click"
     >
-      <EmojiIcon />
-    </IconButton>
+      <Picker
+        onEmojiClick={onEmojiClick}
+        disableSkinTonePicker
+        disableSearchBar
+      />
+    </Popup>
   );
 }

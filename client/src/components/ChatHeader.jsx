@@ -1,15 +1,24 @@
 import Avatar from "./Avatar";
 import MoreButton from "./MoreButton";
+import { useSelector } from "react-redux";
+import {
+  selectedChatSelector,
+  selectedAvatarSelector,
+} from "../features/chatSlice";
 import "../styles/ChatHeader.css";
 
 export default function ChatHeader() {
+  const selectedChat = useSelector(selectedChatSelector);
+  const selectedAvatar = useSelector(selectedAvatarSelector);
+
   return (
     <div className="chat-header">
       <Avatar
-        src="https://randomuser.me/api/portraits/men/7.jpg"
+        src={selectedAvatar}
         className="chat-header__avatar"
+        text={selectedChat}
       />
-      <span className="chat-header__text">Burak Yazan</span>
+      <span className="chat-header__text">{selectedChat}</span>
       <MoreButton />
     </div>
   );
