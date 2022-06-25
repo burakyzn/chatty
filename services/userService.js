@@ -37,7 +37,7 @@ const getNicknameByToken = (token) => {
     .catch(() => {});
 }
 
-const saveUserToDatabase = async (email, nickname) => {
+const saveUser = async (email, nickname) => {
   let userInstance = await userCollectionRef.where('nickname', "==", nickname).get();
   if(!userInstance.empty)
     return false;
@@ -71,5 +71,5 @@ module.exports = {
   getOnlineUsers,
   getOfflineUsers,
   updateUserDisplayNameByEmail,
-  saveUserToDatabase
+  saveUser
 };

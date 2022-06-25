@@ -15,3 +15,7 @@
   background-color: #78E378;
   margin-left: auto;
 }
+
+.chat-message__nickname{
+  font-weight: 600;
+}

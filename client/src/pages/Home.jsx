@@ -6,11 +6,18 @@ import ChatInputBox from "../components/ChatInputBox";
 import ChatArea from "../components/ChatArea";
 import { SocketContext } from "../contexts/socketContext";
 import { useNavigate } from "react-router-dom";
+import { fetchPublicMessages } from "../features/chatSlice";
+import { useDispatch } from "react-redux";
 import "../styles/Home.css";
 
 function Home() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { socket } = useContext(SocketContext);
+
+  useEffect(() => {
+    dispatch(fetchPublicMessages());
+  }, [dispatch]);
 
   useEffect(() => {
     socket.on("new-user-error", (error) => {

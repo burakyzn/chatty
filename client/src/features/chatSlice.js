@@ -1,4 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import chatService from '../services/chatService';
 
 const initialState = {
   nickname: "",
@@ -6,6 +7,11 @@ const initialState = {
   selectedAvatar: null,
   messages: []
 }
+
+export const fetchPublicMessages = createAsyncThunk(
+  'chat/publicMessages',
+  async () => await chatService.getPublicMessages()
+)
 
 const chatSlice = createSlice({
   name: 'chat',
@@ -34,7 +40,15 @@ const chatSlice = createSlice({
     changeNickname: (state,action) => {
       state.nickname = action.payload;
     }
-  }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(fetchPublicMessages.fulfilled, (state, action) => {
+      state.messages = [...state.messages, ...action.payload.messages.map(message => ({
+        ...message,
+        visible: true
+      }))];
+    })
+  },
 });
 
 export const selectedChatSelector = (state) => state.chat.selectedChat;

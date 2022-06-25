@@ -1,10 +1,10 @@
 const express = require('express');
 const userRoutes = require('./userRoutes');
-const messageRoutes = require('./message');
+const chatRoutes = require('./chatRoutes');
 
 const router = express.Router();
 
 router.use('/user', userRoutes);
-router.use('/message', messageRoutes);
+router.use('/chat', chatRoutes);
 
 module.exports = router;
