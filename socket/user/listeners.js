@@ -1,4 +1,3 @@
-const userController = require('../../controllers/user');
 const userService = require('../../services/userService');
 const color = require('../../helpers/color');
 
@@ -17,13 +16,13 @@ module.exports = (io, socket) => {
       rooms: [],
     };
 
-    userController.addUser(user);
+    userService.addUser(user);
     emitters.onlineUsers();
     await emitters.offlineUsers();
   }
 
   const disconnect = async () => {
-    userController.removeUser(socket.id);
+    userService.removeUser(socket.id);
     emitters.onlineUsers();
     await emitters.offlineUsers();
   };

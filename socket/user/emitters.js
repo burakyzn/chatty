@@ -1,13 +1,13 @@
-const userController = require('../../controllers/user');
+const userService = require('../../services/userService');
 
 module.exports = (io, socket) => {
   const onlineUsers = () => {
-    let onlineUsers = userController.getOnlineUsers();
+    let onlineUsers = userService.getOnlineUsers();
     io.emit('online-users', [...onlineUsers]);
   }
 
   const offlineUsers = async () => {
-    let offlineUsers = await userController.getOfflineUsers();
+    let offlineUsers = await userService.getOfflineUsers();
     io.emit('offline-users', [...offlineUsers]);
   }
 
