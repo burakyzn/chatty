@@ -2,7 +2,8 @@ import api from "../core/api"
 import {auth} from '../core/firebase'
 
 const apis = Object.freeze({
-  REGISTER : '/user/register'
+  REGISTER : '/user/register',
+  NICKNAME : '/user/nickname'
 })
 
 const authService = {
@@ -31,6 +32,15 @@ const authService = {
       }))
       .catch((error) => {
         throw {code: error.code, message: error.message};
+      });
+  },
+  nickname: async () => {
+    return await api.get(apis.NICKNAME)
+      .then(response => response.data)
+      .then(response => {
+        if(!response.success)
+          throw {code: response.code, message: response.message};
+        return response;
       });
   }
 };

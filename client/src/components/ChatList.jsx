@@ -12,12 +12,14 @@ import {
 import {
   changeSelectedAvatar,
   changeSelectedChat,
+  nicknameSelector,
 } from "../features/chatSlice";
 import "../styles/ChatList.css";
 
 export default function ChatList() {
   const onlineUsers = useSelector(onlineUserSelector);
   const offlineUsers = useSelector(offlineUserSelector);
+  const myNickname = useSelector(nicknameSelector);
   const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
 
@@ -58,7 +60,8 @@ export default function ChatList() {
       </ButtonBase>
       {onlineUsers.map(
         (onlineUser) =>
-          onlineUser.visible && (
+          onlineUser.visible &&
+          onlineUser.nickname !== myNickname && (
             <ButtonBase
               key={onlineUser.socketID}
               className="chat-list__card"

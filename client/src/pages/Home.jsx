@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import SidebarHeader from "../components/SidebarHeader";
 import ChatList from "../components/ChatList";
 import ChatHeader from "../components/ChatHeader";
@@ -8,12 +8,16 @@ import { SocketContext } from "../contexts/socketContext";
 import { useNavigate } from "react-router-dom";
 import { fetchPublicMessages } from "../features/chatSlice";
 import { useDispatch } from "react-redux";
+import authService from "../services/authService";
+import Loader from "../components/Loader";
+import { changeNickname } from "../features/chatSlice";
 import "../styles/Home.css";
 
 function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { socket } = useContext(SocketContext);
+  const [loader, setLoader] = useState(false);
 
   useEffect(() => {
     dispatch(fetchPublicMessages());
@@ -33,11 +37,25 @@ function Home() {
   useEffect(() => {
     let token = localStorage.getItem("token");
 
-    if (token) socket.emit("new-user", token);
-    else navigate("/login");
+    if (token) {
+      setLoader(true);
+      authService
+        .nickname()
+        .then((result) => {
+          dispatch(changeNickname(result.nickname));
+          socket.emit("new-user", token);
+          setLoader(false);
+        })
+        .catch((error) => {
+          console.error(error.code, error.message);
+          navigate("/login");
+        });
+    } else navigate("/login");
   }, [socket]);
 
-  return (
+  return loader ? (
+    <Loader open={loader} />
+  ) : (
     <div className="home">
       <div className="home__sidebar">
         <SidebarHeader />

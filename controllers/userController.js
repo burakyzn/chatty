@@ -14,6 +14,17 @@ const register = async (req, res) => {
   res.json({success: result, message: "The user has been created."});
 };
 
+const getNickname = async (req, res) => {
+  let verifiedNickname = await userService.getNicknameByToken(req.headers.authorization);
+  if(!verifiedNickname) {
+    res.json({ success: false, code: "unauthorized-token", message: "Token is not valid!" });
+    return;
+  }
+
+  res.json({success: true, nickname: verifiedNickname});
+};
+
 module.exports = {
-  register
+  register,
+  getNickname
 };
