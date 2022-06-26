@@ -1,6 +1,6 @@
+import ChatCard from "./ChatCard";
 import { useEffect, useContext } from "react";
 import { SocketContext } from "../contexts/socketContext";
-import ChatCard from "./ChatCard";
 import { ButtonBase } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,6 +13,7 @@ import {
   changeSelectedAvatar,
   changeSelectedChat,
   nicknameSelector,
+  selectedChatSelector,
 } from "../features/chatSlice";
 import "../styles/ChatList.css";
 
@@ -20,6 +21,7 @@ export default function ChatList() {
   const onlineUsers = useSelector(onlineUserSelector);
   const offlineUsers = useSelector(offlineUserSelector);
   const myNickname = useSelector(nicknameSelector);
+  const selectedChat = useSelector(selectedChatSelector);
   const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
 
@@ -56,7 +58,11 @@ export default function ChatList() {
         className="chat-list__card"
         onClick={() => handleChangeSelectedChat("Public")}
       >
-        <ChatCard text="Public" hiddenCircle />
+        <ChatCard
+          text="Public"
+          hiddenCircle
+          selected={selectedChat === "Public"}
+        />
       </ButtonBase>
       {onlineUsers.map(
         (onlineUser) =>
@@ -74,6 +80,7 @@ export default function ChatList() {
             >
               <ChatCard
                 text={onlineUser.nickname}
+                selected={selectedChat === onlineUser.nickname}
                 avatarSrc="https://randomuser.me/api/portraits/men/22.jpg"
                 online
               />
@@ -95,6 +102,7 @@ export default function ChatList() {
             >
               <ChatCard
                 text={offlineUser.nickname}
+                selected={selectedChat === offlineUser.nickname}
                 avatarSrc={offlineUser.avatar}
               />
             </ButtonBase>

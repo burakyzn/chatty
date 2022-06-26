@@ -1,12 +1,11 @@
-import { default as CircleIcon } from "@mui/icons-material/Circle";
 import Avatar from "../components/Avatar";
+import { default as CircleIcon } from "@mui/icons-material/Circle";
 import "../styles/ChatCard.css";
 
 export default function ChatCard(props) {
-  const { text, avatarSrc, hiddenCircle, online } = props;
-
+  const { text, avatarSrc, hiddenCircle, online, selected } = props;
   return (
-    <div className="chat-card">
+    <div className={`chat-card ${selected ? "selected" : ""}`}>
       <div className="chat-card__avatar">
         <Avatar src={avatarSrc} text={text} />
       </div>

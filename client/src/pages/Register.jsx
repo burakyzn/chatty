@@ -31,7 +31,6 @@ function Register() {
     authService
       .register(nickname, email, password)
       .then((result) => {
-        console.log(result.message);
         navigate("/login");
       })
       .catch((error) => {

@@ -5,6 +5,15 @@
   align-items: center;
 }
 
+.chat-card:hover{
+  background-color: #F5F5F5;
+}
+
+.chat-card.selected{
+
+  background-color: #EFF1EF;
+}
+
 .chat-card__avatar{
   padding: 10px;
 }

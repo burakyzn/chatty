@@ -1,0 +1,25 @@
+.drawer-header{
+  flex:1;
+  display: flex;
+  align-items: center;
+}
+
+.drawer-header__button{
+  flex:1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.drawer-header__button-icon{
+  font-size: 25px!important;
+  padding: 8px;
+}
+
+.drawer-header__text{
+  color: #011627;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  flex:5;
+}

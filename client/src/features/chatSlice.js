@@ -43,7 +43,7 @@ const chatSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(fetchPublicMessages.fulfilled, (state, action) => {
-      state.messages = [...state.messages, ...action.payload.messages.map(message => ({
+      state.messages = [...action.payload.messages.map(message => ({
         ...message,
         visible: true
       }))];

@@ -29,7 +29,6 @@ function Login() {
       .login(email, password)
       .then((result) => {
         localStorage.setItem("token", result.token);
-        dispatch(changeNickname(result.nickname));
         navigate("/chat");
       })
       .catch((error) => {
