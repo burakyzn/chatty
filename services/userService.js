@@ -7,7 +7,7 @@ const addUser = (user) => {
 };
 
 const removeUser = (socketID) => {
-  users = users.filter((user) => user.socketID != socketID);
+  users = users.filter((user) => user.socketID !== socketID);
 };
 
 const getOnlineUsers = () => {
@@ -64,12 +64,18 @@ const updateUserDisplayNameByEmail = (email, nickname) => {
     .catch(error => console.error("updateUserDisplayNameByEmail :", error));
 }
 
+const getSocketIDByNickname = (nickname) => {
+  var user = users.find((user) => user.nickname === nickname);
+  return user ? user.socketID : null;
+}
+
 module.exports = {
-  addUser,
-  removeUser,
   getNicknameByToken,
   getOnlineUsers,
   getOfflineUsers,
+  getSocketIDByNickname,
+  addUser,
+  removeUser,
   updateUserDisplayNameByEmail,
-  saveUser
+  saveUser,
 };

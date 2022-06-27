@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useRef } from "react";
 import ChatMessage from "./ChatMessage";
 import { useDispatch, useSelector } from "react-redux";
 import { SocketContext } from "../contexts/socketContext";
@@ -13,7 +13,12 @@ export default function ChatArea() {
   const messages = useSelector(messagesSelector);
   const nickname = useSelector(nicknameSelector);
   const dispatch = useDispatch();
+  const chatAreaRef = useRef(null);
   const { socket } = useContext(SocketContext);
+
+  useEffect(() => {
+    chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
+  }, [messages]);
 
   useEffect(() => {
     socket.on("chat-message", (message) => {
@@ -26,7 +31,7 @@ export default function ChatArea() {
   }, [socket, dispatch]);
 
   return (
-    <div className="chat-area">
+    <div ref={chatAreaRef} className="chat-area">
       {messages.map(
         (message, index) =>
           message.visible && (

@@ -10,11 +10,12 @@ module.exports = (io, socket) => {
 
     let verifiedContent = {
       ...content,
-      nickname: verifiedNickname
+      nickname: verifiedNickname,
+      date: new Date().getTime()
     }
 
-    emitters.chatMessage(verifiedContent.nickname, verifiedContent.message, verifiedContent.to);
-    return await chatService.saveMessage(verifiedContent.nickname, verifiedContent.message, verifiedContent.to);
+    emitters.chatMessage(verifiedContent.nickname, verifiedContent.message, verifiedContent.to, verifiedContent.date);
+    return await chatService.saveMessage(verifiedContent.nickname, verifiedContent.message, verifiedContent.to, verifiedContent.date);
   }
 
   socket.on("chat-message", chatMessage);
