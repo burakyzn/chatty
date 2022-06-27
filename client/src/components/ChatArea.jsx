@@ -1,5 +1,5 @@
-import { useEffect, useContext, useRef } from "react";
 import ChatMessage from "./ChatMessage";
+import { useEffect, useContext, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SocketContext } from "../contexts/socketContext";
 import {
@@ -39,7 +39,7 @@ export default function ChatArea() {
               key={index}
               message={message.message}
               onRight={message.nickname === nickname}
-              nickname={message.to == "Public" ? message.nickname : null}
+              nickname={message.to === "Public" ? message.nickname : null}
             />
           )
       )}

@@ -21,7 +21,7 @@ function MessageProvider(props) {
     return () => {
       socket.off("chat-message-error");
     };
-  }, [socket]);
+  }, [socket, navigate]);
 
   const sendMessage = () => {
     socket.emit("chat-message", {

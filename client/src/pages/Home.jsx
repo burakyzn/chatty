@@ -41,7 +41,7 @@ function Home() {
     return () => {
       socket.off("new-user-error");
     };
-  }, [socket]);
+  }, [socket, navigate]);
 
   useEffect(() => {
     let token = localStorage.getItem("token");
@@ -61,7 +61,7 @@ function Home() {
           navigate("/login");
         });
     } else navigate("/login");
-  }, [socket]);
+  }, [socket, navigate, dispatch]);
 
   return loader ? (
     <Loader open={loader} />
