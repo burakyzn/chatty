@@ -8,8 +8,8 @@ import Loader from "../components/Loader";
 import authService from "../services/authService";
 import SettingDrawer from "../components/SettingDrawer";
 import MenuProvider from "../contexts/menuContext";
-import { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../contexts/socketContext";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchPublicMessages } from "../features/chatSlice";
 import { useDispatch } from "react-redux";
@@ -52,6 +52,7 @@ function Home() {
         .nickname()
         .then((result) => {
           dispatch(changeNickname(result.nickname));
+          socket.connect();
           socket.emit("new-user", token);
           setLoader(false);
         })

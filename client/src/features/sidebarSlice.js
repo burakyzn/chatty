@@ -9,6 +9,7 @@ const sidebarSlice = createSlice({
   name: 'sidebar',
   initialState,
   reducers: {
+    resetSidebarState : () => initialState,
     addOnlineUsers: (state, action) => {
       state.onlineUsers = [...action.payload]
     },
@@ -36,5 +37,5 @@ const sidebarSlice = createSlice({
 export const onlineUserSelector = (state) => state.sidebar.onlineUsers;
 export const offlineUserSelector = (state) => state.sidebar.offlineUsers;
 
-export const {addOnlineUsers, addOfflineUsers, filterUsers} = sidebarSlice.actions
+export const {resetSidebarState, addOnlineUsers, addOfflineUsers, filterUsers} = sidebarSlice.actions
 export default sidebarSlice.reducer

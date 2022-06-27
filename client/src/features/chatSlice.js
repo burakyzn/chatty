@@ -37,6 +37,7 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
+    resetChatState : () => initialState,
     changeSelectedChat : (state,action) => {
       state.selectedChat = action.payload;
       state.messages = state.messages.map(message => ({
@@ -89,5 +90,5 @@ export const selectedAvatarSelector = (state) => state.chat.selectedAvatar;
 export const messagesSelector = (state) => state.chat.messages;
 export const nicknameSelector = (state) => state.chat.nickname;
 
-export const {changeSelectedChat, changeSelectedAvatar, addMessage, changeNickname } = chatSlice.actions
+export const {resetChatState, changeSelectedChat, changeSelectedAvatar, addMessage, changeNickname } = chatSlice.actions
 export default chatSlice.reducer

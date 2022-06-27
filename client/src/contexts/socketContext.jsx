@@ -5,8 +5,12 @@ export const SocketContext = createContext();
 
 const socket =
   process.env.NODE_ENV === "production"
-    ? io()
-    : io(process.env.REACT_APP_API_BASE);
+    ? io({
+        autoConnect: false,
+      })
+    : io(process.env.REACT_APP_API_BASE, {
+        autoConnect: false,
+      });
 
 function SocketProvider(props) {
   return (

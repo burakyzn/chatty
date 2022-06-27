@@ -8,7 +8,7 @@ export default function CreateRoomDrawer(props) {
   const { width } = props;
 
   return (
-    <div class="drawer" style={openCreateRoom ? { width: width } : null}>
+    <div className="drawer" style={openCreateRoom ? { width: width } : null}>
       <DrawerHeader text="Rooms" back={() => setOpenCreateRoom(false)} />
     </div>
   );

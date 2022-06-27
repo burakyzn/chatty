@@ -8,7 +8,7 @@ export default function SettingDrawer(props) {
   const { width } = props;
 
   return (
-    <div class="drawer" style={openSetting ? { width: width } : null}>
+    <div className="drawer" style={openSetting ? { width: width } : null}>
       <DrawerHeader text="Settings" back={() => setOpenSetting(false)} />
     </div>
   );

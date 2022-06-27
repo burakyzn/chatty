@@ -1,12 +1,9 @@
 import { useState } from "react";
 import authService from "../services/authService";
-import { useDispatch } from "react-redux";
-import { changeNickname } from "../features/chatSlice";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 
 function Login() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
