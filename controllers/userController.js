@@ -14,17 +14,29 @@ const register = async (req, res) => {
   res.json({success: result, message: "The user has been created."});
 };
 
-const getNickname = async (req, res) => {
+const getUserDetails = async (req, res) => {
   let verifiedNickname = await userService.getNicknameByToken(req.headers.authorization);
   if(!verifiedNickname) {
     res.json({ success: false, code: "unauthorized-token", message: "Token is not valid!" });
     return;
   }
 
-  res.json({success: true, nickname: verifiedNickname});
+  var userDetails = await userService.getUserByNickname(verifiedNickname);
+  res.json({success: true, nickname: verifiedNickname, avatar:  userDetails.avatarURL});
 };
+
+const uploadAvatar = async (req,res) => {
+  let nickname = req.params["nickname"];
+  let image = req.file.buffer;
+
+  let url = await userService.uploadAvatar(image, nickname);
+  await userService.updateUserAvatarUrl(url, nickname);
+
+  res.json({success: true, message: "You updated your profile photo successfully!", url: url});
+}
 
 module.exports = {
   register,
-  getNickname
+  getUserDetails,
+  uploadAvatar
 };

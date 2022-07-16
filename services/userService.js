@@ -1,5 +1,7 @@
-const db = require('../core/db');
-const userCollectionRef = db.firestore().collection('users');
+const {database, storage, auth} = require('../core/firebase');
+const { v4: uuidv4 } = require('uuid');
+
+const userCollectionRef = database.collection('users');
 var users = [];
 
 const addUser = (user) => {
@@ -31,10 +33,15 @@ const getOfflineUsers = async () => {
 };
 
 const getNicknameByToken = (token) => {
-  return db.auth()
+  return auth
     .verifyIdToken(token)
     .then((decodedToken) => decodedToken.name)
     .catch(() => {});
+}
+
+const getUserByNickname = async (nickname) => {
+  let usersCollection = await userCollectionRef.doc(nickname).get();
+  return usersCollection.data();
 }
 
 const saveUser = async (email, nickname) => {
@@ -54,14 +61,19 @@ const saveUser = async (email, nickname) => {
 }
 
 const updateUserDisplayNameByEmail = (email, nickname) => {
-  db.auth()
-    .getUserByEmail(email)
+    auth.getUserByEmail(email)
     .then(user => {
-      db.auth().updateUser(user.uid, {
+      auth.updateUser(user.uid, {
         displayName : nickname
       })
     })
     .catch(error => console.error("updateUserDisplayNameByEmail :", error));
+}
+
+const updateUserAvatarUrl = async (url, nickname) => {
+  await userCollectionRef.doc(nickname).update({
+    avatarURL: url
+  });
 }
 
 const getSocketIDByNickname = (nickname) => {
@@ -69,8 +81,26 @@ const getSocketIDByNickname = (nickname) => {
   return user ? user.socketID : null;
 }
 
+const uploadAvatar = async (image, nickname) => {
+  let uuid = uuidv4();
+  let filePath = `avatars/${nickname}.png`;
+
+  return await storage.bucket()
+    .file(filePath)
+    .save(image, {
+      gzip: true,
+      contentType: 'image/png',
+      metadata: {
+        firebaseStorageDownloadTokens: uuid
+      }
+    })
+    .then(() => "https://firebasestorage.googleapis.com/v0/b/" + storage.bucket().name + "/o/" + encodeURIComponent(filePath) + "?alt=media&token=" + uuid)
+    .catch(error => console.error(error))
+}
+
 module.exports = {
   getNicknameByToken,
+  getUserByNickname,
   getOnlineUsers,
   getOfflineUsers,
   getSocketIDByNickname,
@@ -78,4 +108,6 @@ module.exports = {
   removeUser,
   updateUserDisplayNameByEmail,
   saveUser,
+  uploadAvatar,
+  updateUserAvatarUrl
 };

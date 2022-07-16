@@ -1,5 +1,5 @@
-const db = require('../core/db');
-const roomMessagesRef = db.firestore().collection('roomMessages');
+const {database} = require('../core/firebase');
+const roomMessagesRef = database.collection('roomMessages');
 
 const saveMessage = async (nickname, message, to, date) => {
   roomMessagesRef.doc(to).collection("messages")

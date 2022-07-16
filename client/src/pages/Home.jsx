@@ -5,15 +5,16 @@ import ChatInputBox from "../components/ChatInputBox";
 import ChatArea from "../components/ChatArea";
 import CreateRoomDrawer from "../components/CreateRoomDrawer";
 import Loader from "../components/Loader";
-import authService from "../services/authService";
 import SettingDrawer from "../components/SettingDrawer";
 import MenuProvider from "../contexts/menuContext";
+import userService from "../services/userService";
 import { SocketContext } from "../contexts/socketContext";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchPublicMessages } from "../features/chatSlice";
 import { useDispatch } from "react-redux";
 import { changeNickname } from "../features/chatSlice";
+import { changeAvatar } from "../features/userSlice";
 import "../styles/Home.css";
 
 function Home() {
@@ -48,10 +49,11 @@ function Home() {
 
     if (token) {
       setLoader(true);
-      authService
-        .nickname()
+      userService
+        .userDetails()
         .then((result) => {
           dispatch(changeNickname(result.nickname));
+          dispatch(changeAvatar(result.avatar));
           socket.connect();
           socket.emit("new-user", token);
           setLoader(false);

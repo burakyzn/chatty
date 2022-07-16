@@ -14,14 +14,18 @@ if (process.env.NODE_ENV === 'production') {
       auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER,
       client_x509_cert_url: process.env.FIREBASE_CLIENT_X509,
     }),
+    storageBucket: process.env.STORAGE_BUCKET
   });
 } else {
   var serviceAccount = require('./serviceAccountKey.json');
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
+    storageBucket: "realtimechatapp54.appspot.com"
   });
 }
 
-const db = admin;
-module.exports = db;
+const auth = admin.auth();
+const database = admin.firestore();
+const storage = admin.storage();
+module.exports = {database, storage, auth};

@@ -10,7 +10,7 @@ export default function DrawerInput(props) {
   const [changeable, setChangeable] = useState(false);
 
   const inputStyle = {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
   };
 
   const handleBeginTyping = () => {

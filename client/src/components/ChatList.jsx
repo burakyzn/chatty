@@ -74,16 +74,13 @@ export default function ChatList() {
               key={onlineUser.socketID}
               className="chat-list__card"
               onClick={() =>
-                handleChangeSelectedChat(
-                  onlineUser.nickname,
-                  "https://randomuser.me/api/portraits/men/22.jpg"
-                )
+                handleChangeSelectedChat(onlineUser.nickname, onlineUser.avatar)
               }
             >
               <ChatCard
                 text={onlineUser.nickname}
                 selected={selectedChat === onlineUser.nickname}
-                avatarSrc="https://randomuser.me/api/portraits/men/22.jpg"
+                avatarSrc={onlineUser.avatar}
                 online
               />
             </ButtonBase>

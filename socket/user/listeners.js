@@ -8,11 +8,13 @@ module.exports = (io, socket) => {
     let verifiedNickname = await userService.getNicknameByToken(token);
     if(!verifiedNickname) return emitters.newUserError();
 
+    var userInformation = await userService.getUserByNickname(verifiedNickname);
+
     var user = {
       socketID: socket.id,
       nickname: verifiedNickname,
       color: color.getRandomColor(),
-      avatar: null,
+      avatar: userInformation.avatarURL,
       rooms: [],
     };
 
