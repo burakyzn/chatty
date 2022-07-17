@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchPublicMessages } from "../features/chatSlice";
 import { useDispatch } from "react-redux";
 import { changeNickname } from "../features/chatSlice";
-import { changeAvatar } from "../features/userSlice";
+import { changeAvatar, changeAboutMe } from "../features/userSlice";
 import "../styles/Home.css";
 
 function Home() {
@@ -54,6 +54,7 @@ function Home() {
         .then((result) => {
           dispatch(changeNickname(result.nickname));
           dispatch(changeAvatar(result.avatar));
+          dispatch(changeAboutMe(result.aboutMe));
           socket.connect();
           socket.emit("new-user", token);
           setLoader(false);

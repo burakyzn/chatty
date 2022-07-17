@@ -5,7 +5,7 @@ import { default as DoneIcon } from "@mui/icons-material/Done";
 import "../styles/DrawerInput.css";
 
 export default function DrawerInput(props) {
-  const { labelText, value, placeholder, onChange } = props;
+  const { editable, labelText, value, placeholder, onChange, onSave } = props;
 
   const [changeable, setChangeable] = useState(false);
 
@@ -19,6 +19,7 @@ export default function DrawerInput(props) {
 
   const handleEndTyping = () => {
     setChangeable(false);
+    if (onSave) onSave();
   };
 
   return (
@@ -33,15 +34,17 @@ export default function DrawerInput(props) {
         className="drawer-input__input"
         InputProps={{
           style: inputStyle,
-          endAdornment: changeable ? (
-            <IconButton onClick={handleEndTyping}>
-              <DoneIcon />
-            </IconButton>
-          ) : (
-            <IconButton onClick={handleBeginTyping}>
-              <EditIcon />
-            </IconButton>
-          ),
+          endAdornment: editable ? (
+            changeable ? (
+              <IconButton onClick={handleEndTyping}>
+                <DoneIcon />
+              </IconButton>
+            ) : (
+              <IconButton onClick={handleBeginTyping}>
+                <EditIcon />
+              </IconButton>
+            )
+          ) : null,
         }}
       />
     </div>

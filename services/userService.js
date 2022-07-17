@@ -40,8 +40,8 @@ const getNicknameByToken = (token) => {
 }
 
 const getUserByNickname = async (nickname) => {
-  let usersCollection = await userCollectionRef.doc(nickname).get();
-  return usersCollection.data();
+  let userDocument = await userCollectionRef.doc(nickname).get();
+  return userDocument.data();
 }
 
 const saveUser = async (email, nickname) => {
@@ -72,7 +72,7 @@ const getSocketIDByNickname = (nickname) => {
   return user ? user.socketID : null;
 }
 
-const uploadAvatar = async (image, nickname) => {
+const updateAvatar = async (image, nickname) => {
   let uuid = uuidv4();
   let filePath = `avatars/${nickname}.png`;
 
@@ -89,6 +89,14 @@ const uploadAvatar = async (image, nickname) => {
     .catch(error => console.error(error))
 }
 
+const updateAboutMe = async (nickname, aboutMe) => {
+  await userCollectionRef.doc(nickname).update({
+    aboutMe: aboutMe
+  });
+
+  return {success : true, message: "You updated about section successfully!"}
+}
+
 module.exports = {
   getNicknameByToken,
   getUserByNickname,
@@ -98,6 +106,7 @@ module.exports = {
   addUser,
   removeUser,
   saveUser,
-  uploadAvatar,
-  updateUserAvatarUrl
+  updateAvatar,
+  updateUserAvatarUrl,
+  updateAboutMe
 };

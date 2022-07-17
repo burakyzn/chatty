@@ -6,6 +6,8 @@ export default function Avatar(props) {
   return src ? (
     <img src={src} className={`avatar ${className}`} alt=""></img>
   ) : (
-    <div className={`avatar default ${className}`}>{text[0].toUpperCase()}</div>
+    <div className={`avatar default ${className}`}>
+      {text ? text[0].toUpperCase() : "U"}
+    </div>
   );
 }

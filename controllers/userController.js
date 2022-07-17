@@ -9,11 +9,19 @@ const getUserDetails = async (req, res) => {
   });
 };
 
-const uploadAvatar = async (req,res) => {
+const updateAboutMe = async (req,res) => {
+  let nickname = req.userClaims.nickname;
+  let aboutMe = req.body.aboutMe;
+  
+  let result = await userService.updateAboutMe(nickname, aboutMe);
+  res.json(result);
+}
+
+const updateAvatar = async (req,res) => {
   let image = req.file.buffer;
   let nickname = req.userClaims.nickname;
 
-  let url = await userService.uploadAvatar(image, nickname);
+  let url = await userService.updateAvatar(image, nickname);
   await userService.updateUserAvatarUrl(url, nickname);
 
   res.json({success: true, message: "You updated your profile photo successfully!", url: url});
@@ -21,5 +29,6 @@ const uploadAvatar = async (req,res) => {
 
 module.exports = {
   getUserDetails,
-  uploadAvatar
+  updateAvatar,
+  updateAboutMe
 };

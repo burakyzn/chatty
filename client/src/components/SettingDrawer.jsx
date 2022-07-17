@@ -7,24 +7,40 @@ import { useContext, useState, useRef } from "react";
 import { MenuContext } from "../contexts/menuContext";
 import { avatarSelector } from "../features/userSlice";
 import { useSelector, useDispatch } from "react-redux";
-import { changeAvatar } from "../features/userSlice";
+import { changeAvatar, aboutMeSelector } from "../features/userSlice";
+import { nicknameSelector } from "../features/chatSlice";
 import "../styles/Drawer.css";
 import "../styles/SettingDrawer.css";
 
 export default function SettingDrawer(props) {
-  const { openSetting, setOpenSetting } = useContext(MenuContext);
-  const avatar = useSelector(avatarSelector);
-  const [about, setAbout] = useState("");
-  const [nickname, setNickname] = useState("Burak");
-  const fileInputRef = useRef(null);
-  const dispatch = useDispatch();
   const { width } = props;
+  const dispatch = useDispatch();
+
+  const avatar = useSelector(avatarSelector);
+  const nickname = useSelector(nicknameSelector);
+  const currentAboutMe = useSelector(aboutMeSelector);
+  const { openSetting, setOpenSetting } = useContext(MenuContext);
+
+  const [aboutMe, setAboutMe] = useState(currentAboutMe);
+  const fileInputRef = useRef(null);
 
   const onImageChange = async (event) => {
-    await userService.uploadAvatar(event.target.files[0]).then((response) => {
+    await userService.updateAvatar(event.target.files[0]).then((response) => {
       if (response.success) {
         alert(response.message);
         dispatch(changeAvatar(response.url));
+      } else {
+        console.log(response);
+      }
+    });
+  };
+
+  const onSaveAboutMe = async () => {
+    if (currentAboutMe === aboutMe) return;
+
+    await userService.updateAboutMe(aboutMe).then((response) => {
+      if (response.success) {
+        alert(response.message);
       } else {
         console.log(response);
       }
@@ -46,15 +62,13 @@ export default function SettingDrawer(props) {
         hoverOnClick={() => fileInputRef.current.click()}
         className="setting__avatar"
       />
-      <DrawerInput
-        labelText="Nickname: "
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-      />
+      <DrawerInput labelText="Nickname: " value={nickname} />
       <DrawerInput
         labelText="About Me: "
-        value={about}
-        onChange={(e) => setAbout(e.target.value)}
+        value={aboutMe}
+        onChange={(e) => setAboutMe(e.target.value)}
+        onSave={onSaveAboutMe}
+        editable
       />
       <input
         type="file"

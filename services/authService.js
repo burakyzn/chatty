@@ -4,7 +4,7 @@ const userCollectionRef = database.collection('users');
 const saveUser = async (email, nickname) => {
   let userInstance = await userCollectionRef.where('nickname', "==", nickname).get();
   if(!userInstance.empty)
-    return false;
+    return { success: false, code: "user-not-found", message: "The user couldn't be found!" };
 
   await userCollectionRef.doc(nickname).set({
     email: email,
@@ -23,10 +23,10 @@ const saveUser = async (email, nickname) => {
   })
   .catch(error => {
     console.error("saveUser :", error)
-    return false;
+    return { success: false, code: "duplicated-nickname", message: "Nickname is already used!" };
   });
 
-  return true;
+  return {success: true, message: "The user has been created."};
 }
 
 module.exports = {
