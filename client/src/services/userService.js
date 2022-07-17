@@ -1,14 +1,24 @@
 import api from "../core/api"
 
 const apis = Object.freeze({
-  DETAILS : '/user',
+  GET_USERS: '/user',
+  ME : '/user/me',
   UPLOAD_AVATAR : '/user/avatar',
   UPLOAD_ABOUT_ME: '/user/about-me'
 })
 
 const userService = {
+  getUsers: async () => {
+    return await api.get(apis.GET_USERS)
+    .then(response => response.data)
+    .then(response => {
+      if(!response.success)
+        throw {code: response.code, message: response.message};
+      return response;
+    });
+  },
   userDetails: async () => {
-    return await api.get(apis.DETAILS)
+    return await api.get(apis.ME)
       .then(response => response.data)
       .then(response => {
         if(!response.success)

@@ -9,7 +9,8 @@ import Checkbox from "@mui/material/Checkbox";
 import Avatar from "./Avatar";
 import SearchBox from "./SearchBox";
 import Button from "@mui/material/Button";
-import { useContext, useState } from "react";
+import userService from "../services/userService";
+import { useContext, useState, useEffect } from "react";
 import { MenuContext } from "../contexts/menuContext";
 import "../styles/Drawer.css";
 import "../styles/CreateRoomDrawer.css";
@@ -19,7 +20,8 @@ export default function CreateRoomDrawer(props) {
   const [roomName, setRoomName] = useState("My Room");
   const { width } = props;
 
-  const [checked, setChecked] = useState([1]);
+  const [checked, setChecked] = useState([]);
+  const [users, setUsers] = useState([]);
 
   const handleToggle = (value) => () => {
     const currentIndex = checked.indexOf(value);
@@ -34,6 +36,16 @@ export default function CreateRoomDrawer(props) {
     setChecked(newChecked);
   };
 
+  useEffect(async () => {
+    const fetchUsers = async () => {
+      return await userService.getUsers();
+    };
+
+    fetchUsers().then((response) => {
+      setUsers(response.users);
+    });
+  });
+
   return (
     <div className="drawer" style={openCreateRoom ? { width: width } : null}>
       <DrawerHeader text="Rooms" back={() => setOpenCreateRoom(false)} />
@@ -46,16 +58,16 @@ export default function CreateRoomDrawer(props) {
         <SearchBox />
       </div>
       <List dense className="create-room__users">
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((value) => {
-          const labelId = `checkbox-list-secondary-label-${value}`;
+        {users.map((user) => {
+          const labelId = `checkbox-list-secondary-label-${user.nickname}`;
           return (
             <ListItem
-              key={value}
+              key={user.nickname}
               secondaryAction={
                 <Checkbox
                   edge="end"
-                  onChange={handleToggle(value)}
-                  checked={checked.indexOf(value) !== -1}
+                  onChange={handleToggle(user.nickname)}
+                  checked={checked.indexOf(user.nickname) !== -1}
                   inputProps={{ "aria-labelledby": labelId }}
                 />
               }
@@ -63,11 +75,13 @@ export default function CreateRoomDrawer(props) {
             >
               <ListItemButton>
                 <ListItemAvatar>
-                  <Avatar text="Burak" />
+                  <Avatar src={user.avatar} text={user.nickname} />
                 </ListItemAvatar>
                 <ListItemText
                   id={labelId}
-                  primary={<span style={{ marginLeft: "5px" }}>Test User</span>}
+                  primary={
+                    <span style={{ marginLeft: "5px" }}>{user.nickname}</span>
+                  }
                 />
               </ListItemButton>
             </ListItem>

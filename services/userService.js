@@ -12,6 +12,18 @@ const removeUser = (socketID) => {
   users = users.filter((user) => user.socketID !== socketID);
 };
 
+const getUsers = async () => {
+  let userCollection = await userCollectionRef.get();
+  let users = userCollection.docs.map((userDocument) => {
+    let userData = userDocument.data();
+    return {
+      nickname: userData.nickname,
+      avatar: userData.avatarURL,
+    }
+  });
+  return {success: true, users: users};
+}
+
 const getOnlineUsers = () => {
   return users.map(user => (
     {socketID: user.socketID, nickname: user.nickname, avatar: user.avatar}
@@ -103,6 +115,7 @@ module.exports = {
   getOnlineUsers,
   getOfflineUsers,
   getSocketIDByNickname,
+  getUsers,
   addUser,
   removeUser,
   saveUser,

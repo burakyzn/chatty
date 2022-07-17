@@ -1,5 +1,10 @@
 const userService = require('../services/userService');
 
+const getUsers = async (req,res) => {
+  let result = await userService.getUsers();
+  return res.json(result);
+}
+
 const getUserDetails = async (req, res) => {
   res.json({
     success: true, 
@@ -30,5 +35,6 @@ const updateAvatar = async (req,res) => {
 module.exports = {
   getUserDetails,
   updateAvatar,
-  updateAboutMe
+  updateAboutMe,
+  getUsers
 };
