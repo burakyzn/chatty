@@ -1,7 +1,7 @@
 import api from "../core/api"
 
 const apis = Object.freeze({
-  UPLOAD_AVATAR : '/user/burak/avatar',
+  UPLOAD_AVATAR : '/user/avatar',
   DETAILS : '/user'
 })
 

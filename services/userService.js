@@ -54,20 +54,11 @@ const saveUser = async (email, nickname) => {
     nickname: nickname,
     avatarURL: null,
     rooms: [],
-    status: false
+    status: false,
+    aboutMe: "hi, I'm new here!"
   });
 
   return true;
-}
-
-const updateUserDisplayNameByEmail = (email, nickname) => {
-    auth.getUserByEmail(email)
-    .then(user => {
-      auth.updateUser(user.uid, {
-        displayName : nickname
-      })
-    })
-    .catch(error => console.error("updateUserDisplayNameByEmail :", error));
 }
 
 const updateUserAvatarUrl = async (url, nickname) => {
@@ -106,7 +97,6 @@ module.exports = {
   getSocketIDByNickname,
   addUser,
   removeUser,
-  updateUserDisplayNameByEmail,
   saveUser,
   uploadAvatar,
   updateUserAvatarUrl

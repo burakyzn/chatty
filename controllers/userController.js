@@ -1,33 +1,17 @@
 const userService = require('../services/userService');
 
-const register = async (req, res) => {
-  let email = req.body['email'];
-  let nickname = req.body['nickname'];
-
-  let result = await userService.saveUser(email, nickname);
-  if(!result) {
-    res.json({ success: result, code: "duplicated-nickname", message: "Nickname is already used!" });
-    return;
-  }
-
-  userService.updateUserDisplayNameByEmail(email, nickname);
-  res.json({success: result, message: "The user has been created."});
-};
-
 const getUserDetails = async (req, res) => {
-  let verifiedNickname = await userService.getNicknameByToken(req.headers.authorization);
-  if(!verifiedNickname) {
-    res.json({ success: false, code: "unauthorized-token", message: "Token is not valid!" });
-    return;
-  }
-
-  var userDetails = await userService.getUserByNickname(verifiedNickname);
-  res.json({success: true, nickname: verifiedNickname, avatar:  userDetails.avatarURL});
+  res.json({
+    success: true, 
+    nickname: req.userClaims.nickname,
+    avatar: req.userClaims.avatar, 
+    aboutMe: req.userClaims.aboutMe
+  });
 };
 
 const uploadAvatar = async (req,res) => {
-  let nickname = req.params["nickname"];
   let image = req.file.buffer;
+  let nickname = req.userClaims.nickname;
 
   let url = await userService.uploadAvatar(image, nickname);
   await userService.updateUserAvatarUrl(url, nickname);
@@ -36,7 +20,6 @@ const uploadAvatar = async (req,res) => {
 }
 
 module.exports = {
-  register,
   getUserDetails,
   uploadAvatar
 };

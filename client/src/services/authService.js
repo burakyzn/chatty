@@ -2,7 +2,7 @@ import api from "../core/api"
 import {auth} from '../core/firebase'
 
 const apis = Object.freeze({
-  REGISTER : '/user/register',
+  REGISTER : '/auth/register',
 })
 
 const authService = {
