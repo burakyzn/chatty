@@ -1,16 +1,31 @@
-import { useState } from "react";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Link from "@mui/material/Link";
+import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
 import authService from "../services/authService";
-import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
+import { useNavigate } from "react-router-dom";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useState } from "react";
+import "../styles/Login.css";
+
+const theme = createTheme();
 
 function Login() {
+  const [loader, setLoader] = useState(false);
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loader, setLoader] = useState(false);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    let data = new FormData(event.currentTarget);
+    let email = data.get("email");
+    let password = data.get("password");
 
-  const handleLoginClick = () => {
     if (email.length === 0) {
       console.error("email can not be empty!");
       return;
@@ -37,29 +52,55 @@ function Login() {
   return loader ? (
     <Loader open={loader} />
   ) : (
-    <div>
-      <div>
-        <label htmlFor="email">Email : </label>
-        <input
-          type="text"
-          name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value.trim())}
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password : </label>
-        <input
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value.trim())}
-        />
-      </div>
-      <div>
-        <button onClick={handleLoginClick}>Login</button>
-      </div>
-    </div>
+    <ThemeProvider theme={theme}>
+      <Container component="main" maxWidth="xs" className="login__container">
+        <Box className="login__box">
+          <Avatar>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component="h1" variant="h5">
+            Sign in
+          </Typography>
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email"
+              name="email"
+              autoComplete="email"
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              className="login__submit-button"
+            >
+              Sign In
+            </Button>
+            <Grid container>
+              <Grid item>
+                <Link href="/register" className="login__register-link">
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
+      </Container>
+    </ThemeProvider>
   );
 }
 
