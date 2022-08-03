@@ -109,6 +109,15 @@ const updateAboutMe = async (nickname, aboutMe) => {
   return {success : true, message: "You updated about section successfully!"}
 }
 
+const addRoomToUsers = async (nicknames, roomName) => {
+  await nicknames.forEach(async nickname => {
+    let user = await userCollectionRef.doc(nickname).get();
+    await userCollectionRef.doc(nickname).update({
+      rooms: [...user.data().rooms, roomName],
+    });
+  })
+};
+
 module.exports = {
   getNicknameByToken,
   getUserByNickname,
@@ -121,5 +130,6 @@ module.exports = {
   saveUser,
   updateAvatar,
   updateUserAvatarUrl,
-  updateAboutMe
+  updateAboutMe,
+  addRoomToUsers
 };
