@@ -37,6 +37,7 @@ export default function CreateRoomDrawer(props) {
     let newRoom = {
       name: roomName,
       nicknames: checkedUsers,
+      token: localStorage.getItem("token"),
     };
     socket.emit("create-room", newRoom);
   };
