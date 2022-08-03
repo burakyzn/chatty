@@ -9,23 +9,41 @@ import Checkbox from "@mui/material/Checkbox";
 import Avatar from "./Avatar";
 import SearchBox from "./SearchBox";
 import Button from "@mui/material/Button";
-import userService from "../services/userService";
+import { SocketContext } from "../contexts/socketContext";
 import { useContext, useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { MenuContext } from "../contexts/menuContext";
+import { nicknameSelector } from "../features/chatSlice";
+import {
+  onlineUserSelector,
+  offlineUserSelector,
+} from "../features/sidebarSlice";
 import "../styles/Drawer.css";
 import "../styles/CreateRoomDrawer.css";
 
 export default function CreateRoomDrawer(props) {
+  const myNickname = useSelector(nicknameSelector);
+  const onlineUsers = useSelector(onlineUserSelector);
+  const offlineUsers = useSelector(offlineUserSelector);
+  const { socket } = useContext(SocketContext);
+
   const { openCreateRoom, setOpenCreateRoom } = useContext(MenuContext);
-  const [roomName, setRoomName] = useState("My Room");
   const { width } = props;
 
-  const [checked, setChecked] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [roomName, setRoomName] = useState("My Room");
+  const [checkedUsers, setCheckedUsers] = useState([]);
+
+  const handleCreateButton = () => {
+    let newRoom = {
+      name: roomName,
+      nicknames: checkedUsers,
+    };
+    socket.emit("create-room", newRoom);
+  };
 
   const handleToggle = (value) => () => {
-    const currentIndex = checked.indexOf(value);
-    const newChecked = [...checked];
+    const currentIndex = checkedUsers.indexOf(value);
+    const newChecked = [...checkedUsers];
 
     if (currentIndex === -1) {
       newChecked.push(value);
@@ -33,18 +51,8 @@ export default function CreateRoomDrawer(props) {
       newChecked.splice(currentIndex, 1);
     }
 
-    setChecked(newChecked);
+    setCheckedUsers(newChecked);
   };
-
-  useEffect(async () => {
-    const fetchUsers = async () => {
-      return await userService.getUsers();
-    };
-
-    fetchUsers().then((response) => {
-      setUsers(response.users);
-    });
-  });
 
   return (
     <div className="drawer" style={openCreateRoom ? { width: width } : null}>
@@ -53,38 +61,42 @@ export default function CreateRoomDrawer(props) {
         labelText="Room Name: "
         value={roomName}
         onChange={(e) => setRoomName(e.target.value)}
+        editable
       />
       <div className="create-room__search-box">
         <SearchBox />
       </div>
       <List dense className="create-room__users">
-        {users.map((user) => {
+        {[...onlineUsers, ...offlineUsers].map((user) => {
           const labelId = `checkbox-list-secondary-label-${user.nickname}`;
           return (
-            <ListItem
-              key={user.nickname}
-              secondaryAction={
-                <Checkbox
-                  edge="end"
-                  onChange={handleToggle(user.nickname)}
-                  checked={checked.indexOf(user.nickname) !== -1}
-                  inputProps={{ "aria-labelledby": labelId }}
-                />
-              }
-              disablePadding
-            >
-              <ListItemButton>
-                <ListItemAvatar>
-                  <Avatar src={user.avatar} text={user.nickname} />
-                </ListItemAvatar>
-                <ListItemText
-                  id={labelId}
-                  primary={
-                    <span style={{ marginLeft: "5px" }}>{user.nickname}</span>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
+            user.visible &&
+            user.nickname !== myNickname && (
+              <ListItem
+                key={user.nickname}
+                secondaryAction={
+                  <Checkbox
+                    edge="end"
+                    onChange={handleToggle(user.nickname)}
+                    checked={checkedUsers.indexOf(user.nickname) !== -1}
+                    inputProps={{ "aria-labelledby": labelId }}
+                  />
+                }
+                disablePadding
+              >
+                <ListItemButton>
+                  <ListItemAvatar>
+                    <Avatar src={user.avatar} text={user.nickname} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    id={labelId}
+                    primary={
+                      <span style={{ marginLeft: "5px" }}>{user.nickname}</span>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
+            )
           );
         })}
       </List>
@@ -92,6 +104,7 @@ export default function CreateRoomDrawer(props) {
         variant="contained"
         color="success"
         className="create-room__button"
+        onClick={handleCreateButton}
       >
         Create
       </Button>
