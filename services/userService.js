@@ -110,12 +110,17 @@ const updateAboutMe = async (nickname, aboutMe) => {
 }
 
 const addRoomToUsers = async (nicknames, roomName) => {
-  await nicknames.forEach(async nickname => {
+  for await (const nickname of nicknames) {
     let user = await userCollectionRef.doc(nickname).get();
     await userCollectionRef.doc(nickname).update({
       rooms: [...user.data().rooms, roomName],
     });
-  })
+  }
+};
+
+const getRoomListOfUser = async (nickname) => {
+  let user = await userCollectionRef.doc(nickname).get();
+  return user.data().rooms;
 };
 
 module.exports = {
@@ -131,5 +136,6 @@ module.exports = {
   updateAvatar,
   updateUserAvatarUrl,
   updateAboutMe,
-  addRoomToUsers
+  addRoomToUsers,
+  getRoomListOfUser
 };

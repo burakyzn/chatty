@@ -42,9 +42,7 @@ const chatSlice = createSlice({
       state.selectedChat = action.payload;
       state.messages = state.messages.map(message => ({
         ...message,
-        visible: (message.to === state.nickname && message.nickname === action.payload) 
-        || (message.nickname === state.nickname && message.to === action.payload) 
-        || (action.payload === "Public" && message.to === "Public")
+        visible: message.to === state.selectedChat || message.nickname === state.selectedChat
       }))
     },
     changeSelectedAvatar : (state,action) => {
@@ -53,9 +51,7 @@ const chatSlice = createSlice({
     addMessage: (state, action) => {
       state.messages = [...state.messages, {
         ...action.payload,
-        visible: (action.payload.to === state.nickname && action.payload.nickname === state.selectedChat)
-        || (action.payload.nickname === state.nickname && action.payload.to === state.selectedChat) 
-        || (action.payload.to === "Public" && state.selectedChat === "Public")
+        visible: action.payload.to === state.selectedChat || action.payload.nickname === state.selectedChat
       }];
     },
     changeNickname: (state,action) => {

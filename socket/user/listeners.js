@@ -3,6 +3,7 @@ const color = require('../../helpers/color');
 
 module.exports = (io, socket) => {
   const emitters = require("./emitters")(io, socket);
+  const roomEmitters = require('../room/emitters')(io,socket);
 
   const newUser = async (token) => {
     let verifiedNickname = await userService.getNicknameByToken(token);
@@ -21,6 +22,8 @@ module.exports = (io, socket) => {
     userService.addUser(user);
     emitters.onlineUsers();
     await emitters.offlineUsers();
+    await roomEmitters.joinRooms(verifiedNickname);
+    await roomEmitters.myRoomList(verifiedNickname);
   }
 
   const disconnect = async () => {

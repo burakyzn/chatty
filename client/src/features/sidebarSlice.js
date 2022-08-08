@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   onlineUsers : [],
-  offlineUsers : []
+  offlineUsers : [],
+  myRooms: []
 }
 
 const sidebarSlice = createSlice({
@@ -30,12 +31,23 @@ const sidebarSlice = createSlice({
           .toUpperCase()
           .includes(action.payload.toUpperCase()),
       }));
+    },
+    addMyRooms: (state, action) => {
+      state.myRooms = [...action.payload];
     }
   }
 });
 
 export const onlineUserSelector = (state) => state.sidebar.onlineUsers;
 export const offlineUserSelector = (state) => state.sidebar.offlineUsers;
+export const myRoomSelector = (state) => state.sidebar.myRooms;
 
-export const {resetSidebarState, addOnlineUsers, addOfflineUsers, filterUsers} = sidebarSlice.actions
+export const {
+  resetSidebarState, 
+  addOnlineUsers, 
+  addOfflineUsers, 
+  filterUsers, 
+  addMyRooms 
+} = sidebarSlice.actions
+
 export default sidebarSlice.reducer

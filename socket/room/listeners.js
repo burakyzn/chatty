@@ -1,5 +1,4 @@
 const userService = require('../../services/userService');
-const roomService = require('../../services/roomService');
 
 module.exports = (io, socket) => {
   const emitters = require("./emitters")(io, socket);
@@ -10,8 +9,8 @@ module.exports = (io, socket) => {
 
     // TODO: check uniqueness of room name 
     socket.join(roomContent.name);
-    await roomService.createRoom(roomContent.name);
     await userService.addRoomToUsers([verifiedNickname, ...roomContent.nicknames], roomContent.name);
+    await emitters.myRoomList(verifiedNickname);
   }
 
   socket.on("create-room", createRoom);

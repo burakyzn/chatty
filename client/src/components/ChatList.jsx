@@ -8,6 +8,8 @@ import {
   addOnlineUsers,
   onlineUserSelector,
   offlineUserSelector,
+  addMyRooms,
+  myRoomSelector,
 } from "../features/sidebarSlice";
 import {
   changeSelectedAvatar,
@@ -23,6 +25,8 @@ export default function ChatList() {
   const offlineUsers = useSelector(offlineUserSelector);
   const myNickname = useSelector(nicknameSelector);
   const selectedChat = useSelector(selectedChatSelector);
+  const myRooms = useSelector(myRoomSelector);
+
   const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
 
@@ -45,6 +49,16 @@ export default function ChatList() {
 
     return () => {
       socket.off("offline-users");
+    };
+  }, [socket, dispatch]);
+
+  useEffect(() => {
+    socket.on("my-room-list", (myRoomList) => {
+      dispatch(addMyRooms(myRoomList));
+    });
+
+    return () => {
+      socket.off("my-room-list");
     };
   }, [socket, dispatch]);
 
@@ -107,6 +121,15 @@ export default function ChatList() {
             </ButtonBase>
           )
       )}
+      {myRooms.map((room) => (
+        <ButtonBase
+          key={room}
+          className="chat-list__card"
+          onClick={() => handleChangeSelectedChat(room)}
+        >
+          <ChatCard text={room} selected={selectedChat === room} />
+        </ButtonBase>
+      ))}
     </div>
   );
 }

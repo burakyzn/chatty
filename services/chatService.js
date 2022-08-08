@@ -72,8 +72,29 @@ const getPrivateMessages = async (sender, receiver) => {
   return {messages: messages};
 }
 
+const getRoomMessages = async (roomName) => {
+  let messages = await roomMessagesRef
+  .doc(roomName)
+  .collection("messages")
+  .orderBy("date")
+  .get();
+
+  messages = messages.docs.map(message => {
+    let messageDoc = message.data();
+    return {
+      date: messageDoc.date,
+      to: messageDoc.to,
+      nickname: messageDoc.nickname,
+      message: messageDoc.message
+    }
+  });
+
+  return {messages: messages};
+}
+
 module.exports = {
   saveMessage,
   getPublicMessages,
-  getPrivateMessages
+  getPrivateMessages,
+  getRoomMessages
 };
