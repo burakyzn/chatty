@@ -92,9 +92,26 @@ const getRoomMessages = async (roomName) => {
   return {messages: messages};
 }
 
+const deleteRoom = async (roomName) => {
+  let batch = database.batch();
+
+  await roomMessagesRef
+    .doc(roomName)
+    .collection('messages')
+    .listDocuments()
+    .then(roomMessages => {
+      roomMessages.map((message) => {
+        batch.delete(message)
+      })
+    
+      batch.commit()
+    });
+}
+
 module.exports = {
   saveMessage,
   getPublicMessages,
   getPrivateMessages,
-  getRoomMessages
+  getRoomMessages,
+  deleteRoom
 };

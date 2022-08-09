@@ -1,5 +1,6 @@
 const {database, storage, auth} = require('../core/firebase');
 const { v4: uuidv4 } = require('uuid');
+const chatService = require('./chatService');
 
 const userCollectionRef = database.collection('users');
 var users = [];
@@ -123,6 +124,23 @@ const getRoomListOfUser = async (nickname) => {
   return user.data().rooms;
 };
 
+const removeRoomFromUser = async (nickname, roomName) => {
+  let document = await userCollectionRef.doc(nickname).get();
+  let roomList = document.data().rooms;
+
+  roomList = roomList.filter(function (room) {
+    return room !== roomName;
+  });
+
+  await userCollectionRef.doc(nickname).update({
+    rooms: [...roomList],
+  });
+
+  let snapshot = await userCollectionRef.where('rooms', 'array-contains', roomName).get();
+  if (snapshot.empty)
+    await chatService.deleteRoom(roomName);
+}
+
 module.exports = {
   getNicknameByToken,
   getUserByNickname,
@@ -137,5 +155,6 @@ module.exports = {
   updateUserAvatarUrl,
   updateAboutMe,
   addRoomToUsers,
-  getRoomListOfUser
+  getRoomListOfUser,
+  removeRoomFromUser
 };
