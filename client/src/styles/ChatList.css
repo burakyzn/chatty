@@ -1,0 +1,15 @@
+.chat-list{
+  height: calc(100% - 55px);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none; 
+}
+
+.chat-list::-webkit-scrollbar { 
+  display: none;
+}
+
+.chat-list__card{
+  width: 100%;
+}

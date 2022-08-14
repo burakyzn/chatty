@@ -1,0 +1,21 @@
+.chat-message{
+  background-color: #fff;
+  margin-top: 16px;
+  line-height: 1.5;
+  padding: 10px;
+  border-radius: 12px;
+  max-width: 70%;
+  width: fit-content;
+  color: #011627;
+  font-family: 'Inter';
+  font-weight: 400;
+}
+
+.chat-message.right{
+  background-color: #78E378;
+  margin-left: auto;
+}
+
+.chat-message__nickname{
+  font-weight: 600;
+}

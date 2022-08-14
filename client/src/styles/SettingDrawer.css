@@ -1,0 +1,10 @@
+.setting__avatar{
+  margin-top: 20px;
+}
+
+.setting__avatar-text {
+  font-size: 3vh;
+  font-family: 'Inter';
+  font-weight: 600;
+  color:#fff;
+}

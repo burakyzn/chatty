@@ -1,0 +1,19 @@
+.avatar{
+  width: 7vh;
+  height: 7vh;
+  text-align: center;
+  border-radius: 50%;
+}
+
+.avatar.default{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 24px;
+  overflow: hidden;
+  color: #fff;
+  background-color: #bdbdbd;
+}

@@ -1,0 +1,18 @@
+.drawer-input{
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2vh;
+}
+
+.drawer-input__label{
+  font-family: Inter;
+  text-align: start;
+  width: 80%;
+}
+
+.drawer-input__input{
+  width: 80%;
+}

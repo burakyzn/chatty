@@ -1,0 +1,15 @@
+.chat-input-box{
+  width: calc(100% - 230px);
+  height: 55px;
+  background-color: #fff;
+  border-radius: 12px;
+  margin-left: 115px; 
+  margin-right: 115px;
+  bottom:50px;
+  right:initial;
+  left: inherit;
+  display: flex;
+  padding-left: 10;
+  align-items: center;
+}
+
