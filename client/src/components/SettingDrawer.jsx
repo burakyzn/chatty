@@ -9,6 +9,7 @@ import { avatarSelector } from "../features/userSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { changeAvatar, aboutMeSelector } from "../features/userSlice";
 import { nicknameSelector } from "../features/chatSlice";
+import { toast } from "react-toastify";
 import "../styles/Drawer.css";
 import "../styles/SettingDrawer.css";
 
@@ -27,10 +28,10 @@ export default function SettingDrawer(props) {
   const onImageChange = async (event) => {
     await userService.updateAvatar(event.target.files[0]).then((response) => {
       if (response.success) {
-        alert(response.message);
+        toast.success(response.message);
         dispatch(changeAvatar(response.url));
       } else {
-        console.log(response);
+        toast.error(response.message);
       }
     });
   };
@@ -39,11 +40,8 @@ export default function SettingDrawer(props) {
     if (currentAboutMe === aboutMe) return;
 
     await userService.updateAboutMe(aboutMe).then((response) => {
-      if (response.success) {
-        alert(response.message);
-      } else {
-        console.log(response);
-      }
+      if (response.success) toast.success(response.message);
+      else toast.error(response.message);
     });
   };
 

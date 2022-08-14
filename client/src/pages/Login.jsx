@@ -12,6 +12,7 @@ import Loader from "../components/Loader";
 import { useNavigate } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import "../styles/Login.css";
 
 const theme = createTheme();
@@ -27,12 +28,12 @@ function Login() {
     let password = data.get("password");
 
     if (email.length === 0) {
-      console.error("email can not be empty!");
+      toast.error("Email can not be empty!");
       return;
     }
 
     if (password.length === 0) {
-      console.error("password can not be empty!");
+      toast.error("Password can not be empty!");
       return;
     }
 
@@ -44,7 +45,7 @@ function Login() {
         navigate("/chat");
       })
       .catch((error) => {
-        console.error(error.code, error.message);
+        toast.error(error.message);
         setLoader(false);
       });
   };

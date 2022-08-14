@@ -92,6 +92,17 @@ const getRoomMessages = async (roomName) => {
   return {messages: messages};
 }
 
+const createRoom = async (roomName, count) => {
+  await roomMessagesRef.doc(roomName).set({
+    count: count
+  });
+}
+
+const roomExist = async (roomName) => {
+  let room = await roomMessagesRef.doc(roomName).get();
+  return room.exists;
+}
+
 const deleteRoom = async (roomName) => {
   let batch = database.batch();
 
@@ -113,5 +124,7 @@ module.exports = {
   getPublicMessages,
   getPrivateMessages,
   getRoomMessages,
+  roomExist,
+  createRoom,
   deleteRoom
 };

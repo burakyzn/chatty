@@ -1,8 +1,12 @@
 const userService = require('../../services/userService');
 
 module.exports = (io, socket) => {
-  const createRoomError = () => {
-    socket.emit("create-room-error", "unauthorized-token");
+  const createRoomError = (message) => {
+    socket.emit("create-room-error", message);
+  }
+
+  const createRoomSuccess = () => {
+    socket.emit("create-room-success", "You created a new room successfully!")
   }
   
   const myRoomList = async (nickname) => {
@@ -19,6 +23,7 @@ module.exports = (io, socket) => {
 
   return {
     createRoomError,
+    createRoomSuccess,
     myRoomList,
     joinRooms
   }
