@@ -3,13 +3,21 @@ import { default as MoreIcon } from "@mui/icons-material/MoreVert";
 import { IconButton } from "@mui/material";
 import { SocketContext } from "../contexts/socketContext";
 import { useContext } from "react";
-import { useSelector } from "react-redux";
-import { selectedChatSelector } from "../features/chatSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectedChatSelector,
+  changeSelectedChat,
+} from "../features/chatSlice";
+import { myRoomSelector } from "../features/sidebarSlice";
+
 import "../styles/MoreButton.css";
 
 export default function MoreButton() {
-  const selectedChat = useSelector(selectedChatSelector);
+  const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
+
+  const selectedChat = useSelector(selectedChatSelector);
+  const myRooms = useSelector(myRoomSelector);
 
   const handleLeaveRoom = () => {
     let roomContent = {
@@ -17,8 +25,7 @@ export default function MoreButton() {
       token: localStorage.getItem("token"),
     };
     socket.emit("leave-room", roomContent);
-
-    // TODO : change selected chat
+    dispatch(changeSelectedChat("Public"));
   };
 
   return (
@@ -33,9 +40,12 @@ export default function MoreButton() {
         arrow={false}
       >
         <div className="menu">
-          <div className="menu__item" onClick={handleLeaveRoom}>
-            Leave Room
-          </div>
+          <div className="menu__item">Details</div>
+          {myRooms.includes(selectedChat) && (
+            <div className="menu__item" onClick={handleLeaveRoom}>
+              Leave Room
+            </div>
+          )}
         </div>
       </Popup>
     </IconButton>

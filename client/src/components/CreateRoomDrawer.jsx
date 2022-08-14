@@ -40,6 +40,7 @@ export default function CreateRoomDrawer(props) {
       token: localStorage.getItem("token"),
     };
     socket.emit("create-room", newRoom);
+    setOpenCreateRoom(false);
   };
 
   const handleToggle = (value) => () => {
