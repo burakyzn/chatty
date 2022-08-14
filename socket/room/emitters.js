@@ -9,9 +9,11 @@ module.exports = (io, socket) => {
     socket.emit("create-room-success", "You created a new room successfully!")
   }
   
-  const myRoomList = async (nickname) => {
-    let roomList = await userService.getRoomListOfUser(nickname);
-    socket.emit("my-room-list", roomList);
+  const myRoomList = async (nicknames) => {
+    for await (let nickname of nicknames){
+      let roomList = await userService.getRoomListOfUser(nickname);
+      io.to(userService.getSocketIDByNickname(nickname)).emit("my-room-list", roomList);
+    }
   }
 
   const joinRooms = async (nickname) => {

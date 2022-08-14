@@ -16,6 +16,11 @@
   margin-left: auto;
 }
 
+.chat-message.center{
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .chat-message__nickname{
   font-weight: 600;
 }

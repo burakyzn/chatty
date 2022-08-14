@@ -9,15 +9,13 @@ module.exports = (io, socket) => {
     if(!verifiedNickname) return emitters.createRoomError("User could not be verified!");
 
     let roomExist = await chatService.roomExist(roomContent.name);
-    console.log("roomExists", roomExist);
-
     if(roomExist)
       return emitters.createRoomError("A room with the same name already exists!");
       
     socket.join(roomContent.name);
     await userService.addRoomToUsers([verifiedNickname, ...roomContent.nicknames], roomContent.name);
-    await emitters.myRoomList(verifiedNickname);
-    chatService.createRoom(roomContent.name, roomContent.nicknames.length);
+    await emitters.myRoomList([verifiedNickname, ...roomContent.nicknames]);
+    chatService.createRoom(roomContent.name, verifiedNickname, roomContent.nicknames);
     emitters.createRoomSuccess();
   }
 
@@ -27,7 +25,7 @@ module.exports = (io, socket) => {
 
     await userService.removeRoomFromUser(verifiedNickname, roomContent.room);
     socket.leave(roomContent.room);
-    emitters.myRoomList(verifiedNickname);
+    emitters.myRoomList([verifiedNickname]);
   }
 
   socket.on("create-room", createRoom);

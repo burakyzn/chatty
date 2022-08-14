@@ -23,7 +23,7 @@ module.exports = (io, socket) => {
     emitters.onlineUsers();
     await emitters.offlineUsers();
     await roomEmitters.joinRooms(verifiedNickname);
-    await roomEmitters.myRoomList(verifiedNickname);
+    await roomEmitters.myRoomList([verifiedNickname]);
   }
 
   const disconnect = async () => {

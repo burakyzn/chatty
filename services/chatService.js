@@ -92,10 +92,15 @@ const getRoomMessages = async (roomName) => {
   return {messages: messages};
 }
 
-const createRoom = async (roomName, count) => {
+const createRoom = async (roomName, founder, members) => {
   await roomMessagesRef.doc(roomName).set({
-    count: count
+    count: members.length
   });
+
+  await saveMessage("System", `${founder} create this room`, roomName, new Date().getTime());
+  for(let member of members){
+    await saveMessage("System", `${founder} added ${member} to this room`, roomName, new Date().getTime());
+  }
 }
 
 const roomExist = async (roomName) => {
