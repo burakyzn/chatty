@@ -3,6 +3,7 @@ import { SocketContext } from "./socketContext";
 import { useSelector } from "react-redux";
 import { selectedChatSelector } from "../features/chatSlice";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export const MessageContext = createContext();
 
@@ -14,7 +15,7 @@ function MessageProvider(props) {
 
   useEffect(() => {
     socket.on("chat-message-error", (error) => {
-      console.error(error);
+      toast.error(error);
       navigate("/login");
     });
 

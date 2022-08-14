@@ -10,7 +10,7 @@ import Avatar from "./Avatar";
 import SearchBox from "./SearchBox";
 import Button from "@mui/material/Button";
 import { SocketContext } from "../contexts/socketContext";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { MenuContext } from "../contexts/menuContext";
 import { nicknameSelector } from "../features/chatSlice";
@@ -18,6 +18,7 @@ import {
   onlineUserSelector,
   offlineUserSelector,
 } from "../features/sidebarSlice";
+import { toast } from "react-toastify";
 import "../styles/Drawer.css";
 import "../styles/CreateRoomDrawer.css";
 
@@ -32,6 +33,26 @@ export default function CreateRoomDrawer(props) {
 
   const [roomName, setRoomName] = useState("My Room");
   const [checkedUsers, setCheckedUsers] = useState([]);
+
+  useEffect(() => {
+    socket.on("create-room-error", (message) => {
+      toast.error(message);
+    });
+
+    return () => {
+      socket.off("create-room-error");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    socket.on("create-room-success", (message) => {
+      toast.success(message);
+    });
+
+    return () => {
+      socket.off("create-room-success");
+    };
+  }, [socket]);
 
   const handleCreateButton = () => {
     let newRoom = {

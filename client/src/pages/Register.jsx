@@ -12,6 +12,7 @@ import Loader from "../components/Loader";
 import { useNavigate } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import "../styles/Login.css";
 
 const theme = createTheme();
@@ -28,17 +29,17 @@ function Register() {
     let password = data.get("password");
 
     if (nickname.length > 10) {
-      console.error("nickname length can not be more than 10!");
+      toast.error("Nickname length can not be more than 10!");
       return;
     }
 
     if (email.length === 0) {
-      console.error("email can not be empty!");
+      toast.error("Email can not be empty!");
       return;
     }
 
     if (password.length === 0) {
-      console.error("password can not be empty!");
+      toast.error("Password can not be empty!");
       return;
     }
 
@@ -49,7 +50,7 @@ function Register() {
         navigate("/login");
       })
       .catch((error) => {
-        console.error(error.code, error.message);
+        toast.error(error.message);
         setLoader(false);
       });
   };

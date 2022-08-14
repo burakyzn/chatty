@@ -92,6 +92,22 @@ const getRoomMessages = async (roomName) => {
   return {messages: messages};
 }
 
+const createRoom = async (roomName, founder, members) => {
+  await roomMessagesRef.doc(roomName).set({
+    count: members.length
+  });
+
+  await saveMessage("System", `${founder} create this room`, roomName, new Date().getTime());
+  for(let member of members){
+    await saveMessage("System", `${founder} added ${member} to this room`, roomName, new Date().getTime());
+  }
+}
+
+const roomExist = async (roomName) => {
+  let room = await roomMessagesRef.doc(roomName).get();
+  return room.exists;
+}
+
 const deleteRoom = async (roomName) => {
   let batch = database.batch();
 
@@ -113,5 +129,7 @@ module.exports = {
   getPublicMessages,
   getPrivateMessages,
   getRoomMessages,
+  roomExist,
+  createRoom,
   deleteRoom
 };

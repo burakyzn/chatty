@@ -15,6 +15,7 @@ import { fetchPublicMessages } from "../features/chatSlice";
 import { useDispatch } from "react-redux";
 import { changeNickname } from "../features/chatSlice";
 import { changeAvatar, changeAboutMe } from "../features/userSlice";
+import { toast } from "react-toastify";
 import "../styles/Home.css";
 
 function Home() {
@@ -35,7 +36,7 @@ function Home() {
 
   useEffect(() => {
     socket.on("new-user-error", (error) => {
-      console.error(error);
+      toast.error(error);
       navigate("/login");
     });
 
@@ -60,7 +61,7 @@ function Home() {
           setLoader(false);
         })
         .catch((error) => {
-          console.error(error.code, error.message);
+          toast.error(error.message);
           navigate("/login");
         });
     } else navigate("/login");

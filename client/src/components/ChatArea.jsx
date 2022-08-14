@@ -7,12 +7,15 @@ import {
   addMessage,
   nicknameSelector,
 } from "../features/chatSlice";
+import { myRoomSelector } from "../features/sidebarSlice";
 import "../styles/ChatArea.css";
 
 export default function ChatArea() {
+  const dispatch = useDispatch();
   const messages = useSelector(messagesSelector);
   const nickname = useSelector(nicknameSelector);
-  const dispatch = useDispatch();
+  const myRooms = useSelector(myRoomSelector);
+
   const chatAreaRef = useRef(null);
   const { socket } = useContext(SocketContext);
 
@@ -38,8 +41,14 @@ export default function ChatArea() {
             <ChatMessage
               key={index}
               message={message.message}
+              onCenter={message.nickname === "System"}
               onRight={message.nickname === nickname}
-              nickname={message.to === "Public" ? message.nickname : null}
+              nickname={
+                message.nickname !== "System" &&
+                (message.to === "Public" || myRooms.includes(message.to))
+                  ? message.nickname
+                  : null
+              }
             />
           )
       )}
