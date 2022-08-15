@@ -42,7 +42,7 @@ function Login() {
       .login(email, password)
       .then((result) => {
         localStorage.setItem("token", result.token);
-        navigate("/chat");
+        navigate("/home");
       })
       .catch((error) => {
         toast.error(error.message);
