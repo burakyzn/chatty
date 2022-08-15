@@ -21,7 +21,7 @@ root.render(
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route
-            path="chat"
+            path="home"
             element={
               <SocketProvider>
                 <Home />

@@ -24,10 +24,14 @@ app.use(
 app.use(bodyParser.json());
 
 app.use(cors());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
 }
+
+app.get(['/register', '/login', '/home'], function(req, res) {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
 
 app.use('/', routes);
 
