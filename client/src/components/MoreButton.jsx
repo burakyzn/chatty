@@ -22,7 +22,6 @@ export default function MoreButton() {
   const handleLeaveRoom = () => {
     let roomContent = {
       room: selectedChat,
-      token: localStorage.getItem("token"),
     };
     socket.emit("leave-room", roomContent);
     dispatch(changeSelectedChat("Public"));

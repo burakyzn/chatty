@@ -5,12 +5,9 @@ module.exports = (io, socket) => {
   const emitters = require("./emitters")(io, socket);
 
   const chatMessage = async (content) => {
-    let verifiedNickname = await userService.getNicknameByToken(content.token);
-    if(!verifiedNickname) return emitters.chatMessageError();
-
     let verifiedContent = {
       ...content,
-      nickname: verifiedNickname,
+      nickname: socket.userClaims.nickname,
       date: new Date().getTime()
     }
 

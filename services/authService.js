@@ -9,7 +9,7 @@ const saveUser = async (email, nickname) => {
   await userCollectionRef.doc(nickname).set({
     email: email,
     nickname: nickname,
-    avatarURL: null,
+    avatar: null,
     rooms: [],
     status: false,
     aboutMe: "hi, I'm new here!"

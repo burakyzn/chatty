@@ -12,7 +12,7 @@ import "../styles/MenuButton.css";
 
 export default function MenuButton() {
   const { setOpenSetting, setOpenCreateRoom } = useContext(MenuContext);
-  const { socket } = useContext(SocketContext);
+  const { socket, setToken } = useContext(SocketContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -20,6 +20,7 @@ export default function MenuButton() {
     localStorage.removeItem("token");
     dispatch(resetChatState());
     dispatch(resetSidebarState());
+    setToken("");
     socket.close();
     navigate("/login");
   };

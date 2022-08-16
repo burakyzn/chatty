@@ -27,7 +27,7 @@ const updateAvatar = async (req,res) => {
   let nickname = req.userClaims.nickname;
 
   let url = await userService.updateAvatar(image, nickname);
-  await userService.updateUserAvatarUrl(url, nickname);
+  await userService.updateUserAvatar(url, nickname);
 
   res.json({success: true, message: "You updated your profile photo successfully!", url: url});
 }

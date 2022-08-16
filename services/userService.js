@@ -19,7 +19,7 @@ const getUsers = async () => {
     let userData = userDocument.data();
     return {
       nickname: userData.nickname,
-      avatar: userData.avatarURL,
+      avatar: userData.avatar,
     }
   });
   return {success: true, users: users};
@@ -38,7 +38,7 @@ const getOfflineUsers = async () => {
   usersCollection.forEach((docUser) => {
     if (users.findIndex((x) => x.nickname === docUser.id) === -1) {
       let user = docUser.data();
-      userList.push({nickname: user.nickname, avatar: user.avatarURL});
+      userList.push({nickname: user.nickname, avatar: user.avatar});
     }
   });
 
@@ -65,7 +65,7 @@ const saveUser = async (email, nickname) => {
   await userCollectionRef.doc(nickname).set({
     email: email,
     nickname: nickname,
-    avatarURL: null,
+    avatar: null,
     rooms: [],
     status: false,
     aboutMe: "hi, I'm new here!"
@@ -74,9 +74,9 @@ const saveUser = async (email, nickname) => {
   return true;
 }
 
-const updateUserAvatarUrl = async (url, nickname) => {
+const updateUserAvatar = async (url, nickname) => {
   await userCollectionRef.doc(nickname).update({
-    avatarURL: url
+    avatar: url
   });
 }
 
@@ -152,7 +152,7 @@ module.exports = {
   removeUser,
   saveUser,
   updateAvatar,
-  updateUserAvatarUrl,
+  updateUserAvatar,
   updateAboutMe,
   addRoomToUsers,
   getRoomListOfUser,

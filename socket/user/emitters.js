@@ -11,13 +11,8 @@ module.exports = (io, socket) => {
     io.emit('offline-users', [...offlineUsers]);
   }
 
-  const newUserError = () => {
-    socket.emit("new-user-error", "unauthorized-token");
-  }
-
   return {
     onlineUsers,
-    offlineUsers,
-    newUserError
+    offlineUsers
   }
 }

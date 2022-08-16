@@ -1,6 +1,7 @@
 const registerUserListeners = require("./user/listeners");
 const registerChatListeners = require('./chat/listeners');
 const registerRoomListeners = require('./room/listeners');
+const authMiddleware = require('../middleware/authMiddleware')
 
 const listen = (io) => {
   const onConnection = (socket) => {
@@ -9,6 +10,7 @@ const listen = (io) => {
     registerRoomListeners(io, socket);
   }
 
+  io.use(authMiddleware.socketAuth);
   io.on("connection", onConnection);
 };
 
