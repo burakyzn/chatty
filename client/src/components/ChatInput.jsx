@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { MessageContext } from "../contexts/messageContext";
+import { FormattedMessage } from "react-intl";
 import "../styles/ChatInput.css";
 
 export default function ChatInput() {
@@ -17,15 +18,19 @@ export default function ChatInput() {
   };
 
   return (
-    <input
-      className="chat-input"
-      type="text"
-      name="chat-message"
-      id="chat-message"
-      placeholder="Message"
-      value={message}
-      onChange={(e) => handleSetMessage(e)}
-      onKeyDown={handleKeyPress}
-    />
+    <FormattedMessage id="message">
+      {(formattedMessage) => (
+        <input
+          className="chat-input"
+          type="text"
+          name="chat-message"
+          id="chat-message"
+          placeholder={formattedMessage}
+          value={message}
+          onChange={(e) => handleSetMessage(e)}
+          onKeyDown={handleKeyPress}
+        />
+      )}
+    </FormattedMessage>
   );
 }

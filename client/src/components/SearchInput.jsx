@@ -1,6 +1,7 @@
 import "../styles/SearchInput.css";
 import { useDispatch } from "react-redux";
 import { filterUsers } from "../features/sidebarSlice";
+import { FormattedMessage } from "react-intl";
 
 export default function SearchInput() {
   const dispatch = useDispatch();
@@ -10,13 +11,15 @@ export default function SearchInput() {
   };
 
   return (
-    <input
-      className="search-input"
-      type="text"
-      name=""
-      id=""
-      placeholder="Search"
-      onChange={(e) => handleOnChangeSearchInput(e)}
-    />
+    <FormattedMessage id="search">
+      {(msg) => (
+        <input
+          className="search-input"
+          type="text"
+          placeholder={msg}
+          onChange={(e) => handleOnChangeSearchInput(e)}
+        />
+      )}
+    </FormattedMessage>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { TextField, IconButton } from "@mui/material";
 import { default as EditIcon } from "@mui/icons-material/Edit";
 import { default as DoneIcon } from "@mui/icons-material/Done";
-import "../styles/DrawerInput.css";
+import "../styles/DrawerItem.css";
 
 export default function DrawerInput(props) {
   const { editable, labelText, value, placeholder, onChange, onSave } = props;
@@ -23,15 +23,15 @@ export default function DrawerInput(props) {
   };
 
   return (
-    <div className="drawer-input">
-      <div className="drawer-input__label">{labelText}</div>
+    <div className="drawer-item">
+      <div className="drawer-item__label">{labelText}</div>
       <TextField
         hiddenLabel
         value={value}
         onChange={changeable ? onChange : null}
         placeholder={placeholder}
         variant="filled"
-        className="drawer-input__input"
+        className="drawer-item__input"
         InputProps={{
           style: inputStyle,
           endAdornment: editable ? (

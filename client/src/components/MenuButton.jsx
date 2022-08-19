@@ -8,6 +8,7 @@ import { resetChatState } from "../features/chatSlice";
 import { resetSidebarState } from "../features/sidebarSlice";
 import { useDispatch } from "react-redux";
 import { SocketContext } from "../contexts/socketContext";
+import { FormattedMessage } from "react-intl";
 import "../styles/MenuButton.css";
 
 export default function MenuButton() {
@@ -38,13 +39,13 @@ export default function MenuButton() {
       >
         <div className="menu">
           <div className="menu__item" onClick={() => setOpenCreateRoom(true)}>
-            Create Room
+            <FormattedMessage id="createRoom" />
           </div>
           <div className="menu__item" onClick={() => setOpenSetting(true)}>
-            Settings
+            <FormattedMessage id="settings" />
           </div>
           <div className="menu__item" onClick={handleLogout}>
-            Logout
+            <FormattedMessage id="logout" />
           </div>
         </div>
       </Popup>

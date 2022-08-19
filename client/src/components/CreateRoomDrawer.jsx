@@ -18,6 +18,7 @@ import {
   onlineUserSelector,
   offlineUserSelector,
 } from "../features/sidebarSlice";
+import { FormattedMessage } from "react-intl";
 import { toast } from "react-toastify";
 import "../styles/Drawer.css";
 import "../styles/CreateRoomDrawer.css";
@@ -31,7 +32,7 @@ export default function CreateRoomDrawer(props) {
   const { openCreateRoom, setOpenCreateRoom } = useContext(MenuContext);
   const { width } = props;
 
-  const [roomName, setRoomName] = useState("My Room");
+  const [roomName, setRoomName] = useState("");
   const [checkedUsers, setCheckedUsers] = useState([]);
 
   useEffect(() => {
@@ -110,15 +111,29 @@ export default function CreateRoomDrawer(props) {
     setCheckedUsers(newChecked);
   };
 
-  return (
-    <div className="drawer" style={openCreateRoom ? { width: width } : null}>
-      <DrawerHeader text="Rooms" back={() => setOpenCreateRoom(false)} />
+  const randomDefaultRoomName = (message) => {
+    let randomNumber = Math.floor(Math.random() * 10001);
+    let defaultRoomName = message + randomNumber;
+
+    return (
       <DrawerInput
-        labelText="Room Name: "
-        value={roomName}
+        labelText={<FormattedMessage id="room" />}
+        value={roomName ? roomName : defaultRoomName}
         onChange={(e) => setRoomName(e.target.value)}
         editable
       />
+    );
+  };
+
+  return (
+    <div className="drawer" style={openCreateRoom ? { width: width } : null}>
+      <DrawerHeader
+        text={<FormattedMessage id="rooms" />}
+        back={() => setOpenCreateRoom(false)}
+      />
+      <FormattedMessage id="defaultRoom">
+        {(message) => randomDefaultRoomName(message)}
+      </FormattedMessage>
       <div className="create-room__search-box">
         <SearchBox />
       </div>
@@ -131,7 +146,7 @@ export default function CreateRoomDrawer(props) {
         className="create-room__button"
         onClick={handleCreateButton}
       >
-        Create
+        <FormattedMessage id="create" />
       </Button>
     </div>
   );

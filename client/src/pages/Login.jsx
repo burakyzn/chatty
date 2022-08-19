@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { FormattedMessage } from "react-intl";
 import "../styles/Login.css";
 
 const theme = createTheme();
@@ -28,12 +29,12 @@ function Login() {
     let password = data.get("password");
 
     if (email.length === 0) {
-      toast.error("Email can not be empty!");
+      toast.error(<FormattedMessage id="emptyEmail" />);
       return;
     }
 
     if (password.length === 0) {
-      toast.error("Password can not be empty!");
+      toast.error(<FormattedMessage id="emptyPassword" />);
       return;
     }
 
@@ -60,7 +61,7 @@ function Login() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            <FormattedMessage id="signIn" />
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
@@ -68,7 +69,7 @@ function Login() {
               required
               fullWidth
               id="email"
-              label="Email"
+              label={<FormattedMessage id="email" />}
               name="email"
               autoComplete="email"
               autoFocus
@@ -78,7 +79,7 @@ function Login() {
               required
               fullWidth
               name="password"
-              label="Password"
+              label={<FormattedMessage id="password" />}
               type="password"
               id="password"
               autoComplete="current-password"
@@ -89,12 +90,12 @@ function Login() {
               variant="contained"
               className="login__submit-button"
             >
-              Sign In
+              <FormattedMessage id="signIn" />
             </Button>
             <Grid container>
               <Grid item>
                 <Link href="/register" className="login__register-link">
-                  {"Don't have an account? Sign Up"}
+                  <FormattedMessage id="recommendSignUp" />
                 </Link>
               </Grid>
             </Grid>

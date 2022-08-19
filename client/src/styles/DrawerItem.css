@@ -1,0 +1,18 @@
+.drawer-item{
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2vh;
+}
+
+.drawer-item__label{
+  font-family: Inter;
+  text-align: start;
+  width: 80%;
+}
+
+.drawer-item__input{
+  width: 80%;
+}
