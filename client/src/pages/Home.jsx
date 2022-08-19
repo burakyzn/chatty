@@ -21,7 +21,7 @@ import "../styles/Home.css";
 function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { socket } = useContext(SocketContext);
+  const { socket, setToken } = useContext(SocketContext);
   const [loader, setLoader] = useState(false);
   const [settingDrawerWidth, setSettingDrawerWidth] = useState("0");
   const sidebarRef = useRef();
@@ -56,8 +56,9 @@ function Home() {
           dispatch(changeNickname(result.nickname));
           dispatch(changeAvatar(result.avatar));
           dispatch(changeAboutMe(result.aboutMe));
+          setToken(token);
           socket.connect();
-          socket.emit("new-user", token);
+          socket.emit("new-user");
           setLoader(false);
         })
         .catch((error) => {

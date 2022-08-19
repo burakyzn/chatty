@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { FormattedMessage } from "react-intl";
 import "../styles/Login.css";
 
 const theme = createTheme();
@@ -28,18 +29,23 @@ function Register() {
     let email = data.get("email");
     let password = data.get("password");
 
+    if (nickname.length === 0) {
+      toast.error(<FormattedMessage id="emptyNickname" />);
+      return;
+    }
+
     if (nickname.length > 10) {
-      toast.error("Nickname length can not be more than 10!");
+      toast.error(<FormattedMessage id="nicknameLengthError" />);
       return;
     }
 
     if (email.length === 0) {
-      toast.error("Email can not be empty!");
+      toast.error(<FormattedMessage id="emptyEmail" />);
       return;
     }
 
     if (password.length === 0) {
-      toast.error("Password can not be empty!");
+      toast.error(<FormattedMessage id="emptyPassword" />);
       return;
     }
 
@@ -47,6 +53,7 @@ function Register() {
     authService
       .register(nickname, email, password)
       .then(() => {
+        toast.success(<FormattedMessage id="successfullySignUp" />);
         navigate("/login");
       })
       .catch((error) => {
@@ -65,7 +72,7 @@ function Register() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign up
+            <FormattedMessage id="signUp" />
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
@@ -73,7 +80,7 @@ function Register() {
               required
               fullWidth
               id="Nickname"
-              label="Nickname"
+              label={<FormattedMessage id="nickname" />}
               name="nickname"
               autoComplete="nickname"
               autoFocus
@@ -83,17 +90,16 @@ function Register() {
               required
               fullWidth
               id="email"
-              label="Email"
+              label={<FormattedMessage id="email" />}
               name="email"
               autoComplete="email"
-              autoFocus
             />
             <TextField
               margin="normal"
               required
               fullWidth
               name="password"
-              label="Password"
+              label={<FormattedMessage id="password" />}
               type="password"
               id="password"
               autoComplete="current-password"
@@ -104,12 +110,12 @@ function Register() {
               variant="contained"
               className="login__submit-button"
             >
-              Sign Up
+              {<FormattedMessage id="signUp" />}
             </Button>
             <Grid container>
               <Grid item>
                 <Link href="/login" className="login__register-link">
-                  {"Do have an account? Sign In"}
+                  <FormattedMessage id="recommendSignIn" />
                 </Link>
               </Grid>
             </Grid>

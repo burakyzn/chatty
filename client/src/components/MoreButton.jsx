@@ -11,6 +11,7 @@ import {
 import { myRoomSelector } from "../features/sidebarSlice";
 
 import "../styles/MoreButton.css";
+import { FormattedMessage } from "react-intl";
 
 export default function MoreButton() {
   const dispatch = useDispatch();
@@ -22,7 +23,6 @@ export default function MoreButton() {
   const handleLeaveRoom = () => {
     let roomContent = {
       room: selectedChat,
-      token: localStorage.getItem("token"),
     };
     socket.emit("leave-room", roomContent);
     dispatch(changeSelectedChat("Public"));
@@ -40,10 +40,12 @@ export default function MoreButton() {
         arrow={false}
       >
         <div className="menu">
-          <div className="menu__item">Details</div>
+          <div className="menu__item">
+            <FormattedMessage id="details" />
+          </div>
           {myRooms.includes(selectedChat) && (
             <div className="menu__item" onClick={handleLeaveRoom}>
-              Leave Room
+              <FormattedMessage id="leaveRoom" />
             </div>
           )}
         </div>

@@ -28,7 +28,6 @@ function MessageProvider(props) {
     socket.emit("chat-message", {
       to: chat,
       message: message,
-      token: localStorage.getItem("token"),
     });
 
     setMessage("");

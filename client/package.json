@@ -16,13 +16,15 @@
     "firebase": "^8.6.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-intl": "^6.0.5",
     "react-redux": "^8.0.2",
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
     "react-toastify": "^9.0.8",
     "reactjs-popup": "^2.0.5",
     "socket.io-client": "^4.5.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "lang": "file:./lang"
   },
   "scripts": {
     "start": "react-scripts start",
