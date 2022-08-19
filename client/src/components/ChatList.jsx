@@ -17,6 +17,7 @@ import {
   nicknameSelector,
   selectedChatSelector,
   fetchPrivateMessages,
+  fetchedMessageSelector,
 } from "../features/chatSlice";
 import "../styles/ChatList.css";
 
@@ -26,6 +27,7 @@ export default function ChatList() {
   const myNickname = useSelector(nicknameSelector);
   const selectedChat = useSelector(selectedChatSelector);
   const myRooms = useSelector(myRoomSelector);
+  const fetchedMessages = useSelector(fetchedMessageSelector);
 
   const dispatch = useDispatch();
   const { socket } = useContext(SocketContext);
@@ -63,7 +65,8 @@ export default function ChatList() {
   }, [socket, dispatch]);
 
   const handleChangeSelectedChat = (chatName, avatar) => {
-    if (chatName !== "Public") dispatch(fetchPrivateMessages(chatName));
+    if (chatName !== "Public" && !fetchedMessages.includes(chatName))
+      dispatch(fetchPrivateMessages(chatName));
     dispatch(changeSelectedChat(chatName));
     dispatch(changeSelectedAvatar(avatar));
   };

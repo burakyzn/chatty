@@ -47,6 +47,7 @@ function Register() {
     authService
       .register(nickname, email, password)
       .then(() => {
+        toast.success("You have successfully signed up!");
         navigate("/login");
       })
       .catch((error) => {

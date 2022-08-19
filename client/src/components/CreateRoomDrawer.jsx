@@ -65,7 +65,7 @@ export default function CreateRoomDrawer(props) {
               <Checkbox
                 edge="end"
                 onChange={handleToggle(user.nickname)}
-                checked={checkedUsers.indexOf(user.nickname) !== -1}
+                checked={checkedUsers.includes(user.nickname)}
                 inputProps={{ "aria-labelledby": user.nickname }}
               />
             }
@@ -95,16 +95,16 @@ export default function CreateRoomDrawer(props) {
     };
     socket.emit("create-room", newRoom);
     setOpenCreateRoom(false);
+    setCheckedUsers([]);
   };
 
   const handleToggle = (value) => () => {
-    const currentIndex = checkedUsers.indexOf(value);
     const newChecked = [...checkedUsers];
 
-    if (currentIndex === -1) {
+    if (!checkedUsers.includes(value)) {
       newChecked.push(value);
     } else {
-      newChecked.splice(currentIndex, 1);
+      newChecked.splice(checkedUsers.indexOf(value), 1);
     }
 
     setCheckedUsers(newChecked);

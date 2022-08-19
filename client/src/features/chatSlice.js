@@ -16,14 +16,7 @@ export const fetchPublicMessages = createAsyncThunk(
 
 export const fetchPrivateMessages = createAsyncThunk(
   'chat/privateMessages',
-  async (nickname, { getState }) => {
-    const state = getState();
-
-    if(state.chat.fetchedMessages.includes(nickname))
-      return {
-        process: false
-      };
-    
+  async (nickname) => {    
     let messages = await chatService.getPrivateMessages(nickname).then(response => response.messages);
     return {
       process: true,
@@ -42,7 +35,7 @@ const chatSlice = createSlice({
       state.selectedChat = action.payload;
       state.messages = state.messages.map(message => ({
         ...message,
-        visible: message.to === state.selectedChat || message.nickname === state.selectedChat
+        visible: message.to === state.selectedChat || (message.nickname === state.selectedChat && message.to !== 'Public')
       }))
     },
     changeSelectedAvatar : (state,action) => {
@@ -67,16 +60,17 @@ const chatSlice = createSlice({
         }))];
       })
       .addCase(fetchPrivateMessages.fulfilled, (state, action) => {
-        if(action.payload.process){
-          state.messages = state.messages.filter(message => message.nickname !== action.payload.nickname);
+        state.messages = state.messages.map(message => ({
+          ...message,
+          visible: false
+        }));
 
-          state.messages = [...state.messages, ...action.payload.messages.map(message => ({
-            ...message,
-            visible: true
-          }))];
+        state.messages = [...state.messages, ...action.payload.messages.map(message => ({
+          ...message,
+          visible: true
+        }))];
 
-          state.fetchedMessages = [...state.fetchedMessages, action.payload.nickname];
-        }
+        state.fetchedMessages = [...state.fetchedMessages, action.payload.nickname];
       })
   },
 });
@@ -85,6 +79,7 @@ export const selectedChatSelector = (state) => state.chat.selectedChat;
 export const selectedAvatarSelector = (state) => state.chat.selectedAvatar;
 export const messagesSelector = (state) => state.chat.messages;
 export const nicknameSelector = (state) => state.chat.nickname;
+export const fetchedMessageSelector = (state) => state.chat.fetchedMessages;
 
 export const {resetChatState, changeSelectedChat, changeSelectedAvatar, addMessage, changeNickname } = chatSlice.actions
 export default chatSlice.reducer
