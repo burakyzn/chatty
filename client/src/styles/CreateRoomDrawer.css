@@ -16,3 +16,7 @@
   margin-top: 20px;
   flex: 1;
 }
+
+.create-room__nickname{
+  margin-left: 5px;
+}

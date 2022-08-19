@@ -10,7 +10,7 @@ import Avatar from "./Avatar";
 import SearchBox from "./SearchBox";
 import Button from "@mui/material/Button";
 import { SocketContext } from "../contexts/socketContext";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { MenuContext } from "../contexts/menuContext";
 import { nicknameSelector } from "../features/chatSlice";
@@ -54,6 +54,40 @@ export default function CreateRoomDrawer(props) {
     };
   }, [socket]);
 
+  const AvailableUsers = () => {
+    return [...onlineUsers, ...offlineUsers].map((user) => {
+      return (
+        user.visible &&
+        user.nickname !== myNickname && (
+          <ListItem
+            key={user.nickname}
+            secondaryAction={
+              <Checkbox
+                edge="end"
+                onChange={handleToggle(user.nickname)}
+                checked={checkedUsers.indexOf(user.nickname) !== -1}
+                inputProps={{ "aria-labelledby": user.nickname }}
+              />
+            }
+            disablePadding
+          >
+            <ListItemButton>
+              <ListItemAvatar>
+                <Avatar src={user.avatar} text={user.nickname} />
+              </ListItemAvatar>
+              <ListItemText
+                id={user.nickname}
+                primary={
+                  <span className="create-room__nickname">{user.nickname}</span>
+                }
+              />
+            </ListItemButton>
+          </ListItem>
+        )
+      );
+    });
+  };
+
   const handleCreateButton = () => {
     let newRoom = {
       name: roomName,
@@ -88,39 +122,8 @@ export default function CreateRoomDrawer(props) {
       <div className="create-room__search-box">
         <SearchBox />
       </div>
-      <List dense className="create-room__users">
-        {[...onlineUsers, ...offlineUsers].map((user) => {
-          const labelId = `checkbox-list-secondary-label-${user.nickname}`;
-          return (
-            user.visible &&
-            user.nickname !== myNickname && (
-              <ListItem
-                key={user.nickname}
-                secondaryAction={
-                  <Checkbox
-                    edge="end"
-                    onChange={handleToggle(user.nickname)}
-                    checked={checkedUsers.indexOf(user.nickname) !== -1}
-                    inputProps={{ "aria-labelledby": labelId }}
-                  />
-                }
-                disablePadding
-              >
-                <ListItemButton>
-                  <ListItemAvatar>
-                    <Avatar src={user.avatar} text={user.nickname} />
-                  </ListItemAvatar>
-                  <ListItemText
-                    id={labelId}
-                    primary={
-                      <span style={{ marginLeft: "5px" }}>{user.nickname}</span>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-            )
-          );
-        })}
+      <List className="create-room__users">
+        <AvailableUsers />
       </List>
       <Button
         variant="contained"
