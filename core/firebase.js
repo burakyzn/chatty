@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'production') {
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: "realtimechatapp54.appspot.com"
+    storageBucket: "YOUR-STORAGE-ADDRESS"
   });
 }
 
