@@ -10,7 +10,7 @@ import Avatar from "./Avatar";
 import SearchBox from "./SearchBox";
 import Button from "@mui/material/Button";
 import { SocketContext } from "../contexts/socketContext";
-import { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { MenuContext } from "../contexts/menuContext";
 import { nicknameSelector } from "../features/chatSlice";

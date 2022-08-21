@@ -1,7 +1,7 @@
 {
-  "name": "realtime-chat-app",
+  "name": "chatty",
   "version": "1.0.0",
-  "description": "Realtime chat application for network programming lecture.",
+  "description": "Chatty is an application for chatting online!",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -15,12 +15,12 @@
   "author": "Burak Yazan <brkyznn@gmail.com>, Berkay Sahin <iletisim@berkaysahin.info>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/burakyzn/realtime-chat-app.git"
+    "url": "git+https://github.com/burakyzn/chatty.git"
   },
   "bugs": {
-    "url": "https://github.com/burakyzn/realtime-chat-app/issues"
+    "url": "https://github.com/burakyzn/chatty/issues"
   },
-  "homepage": "https://github.com/burakyzn/realtime-chat-app#readme",
+  "homepage": "https://github.com/burakyzn/chatty#readme",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
