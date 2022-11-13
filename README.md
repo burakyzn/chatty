@@ -2,6 +2,8 @@
 
 Chatty is an application where users can make new friends and chat with them real-time.
 
+![chatty](https://user-images.githubusercontent.com/44683436/201542622-195ee9a3-6928-4e97-9615-e14c488dbd23.gif)
+
 # ⚙️ Install
 
 Clone the project to your computer.
